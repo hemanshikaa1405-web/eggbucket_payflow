@@ -1,0 +1,42 @@
+
+> salescalc@1.0.0 start
+> node server.js
+
+[dotenv@17.3.1] injecting env (0) from .env -- tip: 🔐 prevent committing .env to code: https://dotenvx.com/precommit
+Server running on http://localhost:3000
+POST /api/employees - Name: Log Test User
+Created employee with ID: ca0e7656-85f6-4885-98b8-a7693b14852c
+POST /api/employees - Name: Curl Test User
+Created employee with ID: d9feecbb-a5cc-4b09-8fc9-b1a5448f6742
+POST /api/employees - Name: Final Test User
+Created employee with ID: 0818212d-7021-497e-adce-83864db60ec6
+POST /api/employees - Name: Kiyansh
+Created employee with ID: 860a6b8d-2553-4270-b492-426bac86c944
+POST /api/employees - Name: Sandy
+Created employee with ID: c17e20d3-14f5-4fe5-88c0-0a8e4bfe131e
+POST /api/employees - Name: ASHOK 
+Created employee with ID: d1b14c7a-4375-475c-8346-ec9c247b4f6c
+POST /api/employees - Name: Drashan
+Created employee with ID: 44eef62e-8435-4fb1-98c4-bdf4ed3b8906
+PrismaClientUnknownRequestError: 
+Invalid `prisma.salaryRecord.create()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: ToSql(3), cause: Some(Error { kind: ConversionError("Unable to fit integer value '100000000000' into an INT4 (32-bit signed integer)."), original_code: None, original_message: None }) }), transient: false })
+    at ei.handleRequestError (/Users/hemanshikaa/Documents/SalesCalc/node_modules/@prisma/client/runtime/library.js:121:7458)
+    at ei.handleAndLogRequestError (/Users/hemanshikaa/Documents/SalesCalc/node_modules/@prisma/client/runtime/library.js:121:6593)
+    at ei.request (/Users/hemanshikaa/Documents/SalesCalc/node_modules/@prisma/client/runtime/library.js:121:6300)
+    at async a (/Users/hemanshikaa/Documents/SalesCalc/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at async /Users/hemanshikaa/Documents/SalesCalc/server.js:170:24
+PrismaClientUnknownRequestError: 
+Invalid `prisma.salaryRecord.create()` invocation:
+
+
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: ToSql(3), cause: Some(Error { kind: ConversionError("Unable to fit integer value '10000000000' into an INT4 (32-bit signed integer)."), original_code: None, original_message: None }) }), transient: false })
+    at ei.handleRequestError (/Users/hemanshikaa/Documents/SalesCalc/node_modules/@prisma/client/runtime/library.js:121:7458)
+    at ei.handleAndLogRequestError (/Users/hemanshikaa/Documents/SalesCalc/node_modules/@prisma/client/runtime/library.js:121:6593)
+    at ei.request (/Users/hemanshikaa/Documents/SalesCalc/node_modules/@prisma/client/runtime/library.js:121:6300)
+    at async a (/Users/hemanshikaa/Documents/SalesCalc/node_modules/@prisma/client/runtime/library.js:130:9551)
+    at async /Users/hemanshikaa/Documents/SalesCalc/server.js:170:24

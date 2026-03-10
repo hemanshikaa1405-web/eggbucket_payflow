@@ -1,0 +1,23 @@
+# Backend Dockerfile
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies first for better caching
+COPY package*.json ./
+RUN npm install
+
+# Copy Prisma schema and generate client
+COPY prisma ./prisma/
+RUN npx prisma generate
+
+# Copy the rest of the application
+COPY . .
+
+# Ensure .env is handled via Docker Compose, but we might need dummy for build?
+# Let's skip copying .env explicitly as Compose will provide it.
+
+EXPOSE 3000
+
+# Script to wait for DB, push schema, and start server
+CMD ["sh", "-c", "npx prisma db push && node server.js"]

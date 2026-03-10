@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign In | EggBucket PayFlow</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    <main style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;">
+        <div style="max-width:420px; width:100%;">
+            <div style="text-align:center; margin-bottom:18px;">
+                <h1 style="margin:0;">Welcome!</h1>
+                <p style="margin:6px 0 0 0; color:var(--text-muted);">Sign in to access EggBucket PayFlow</p>
+            </div>
+
+            <form id="login-form"
+                style="background:var(--card-bg); padding:22px; border-radius:12px; box-shadow:var(--shadow);">
+                <div class="form-group">
+                    <label for="login-user">Username</label>
+                    <input id="login-user" class="form-input" placeholder="you@example.com" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-pass">Password</label>
+                    <input id="login-pass" type="password" class="form-input" placeholder="Enter your password"
+                        required>
+                </div>
+                <div style="display:flex; gap:8px; justify-content:flex-end; align-items:center; margin-top:12px;">
+                    <div>
+                        <button type="submit" class="btn btn-primary btn-lg" id="sign-in-submit">Sign in</button>
+                    </div>
+                </div>
+            </form>
+            <p style="margin-top:12px; font-size:13px; color:var(--text-muted);">All data is stored locally for this
+                deployment. For production, use a secure backend and HTTPS.</p>
+        </div>
+    </main>
+
+    <script>
+        const TOKEN_KEY = 'sc_token';
+        const USER_KEY = 'sc_user';
+        const form = document.getElementById('login-form');
+
+        async function postJSON(url, body) {
+            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            return res;
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('login-user').value.trim();
+            const password = document.getElementById('login-pass').value.trim();
+            if (!username || !password) return alert('Enter username and password');
+
+            // enforce single allowed credential pair
+            if (username !== 'Admin' || password !== 'Admin123@') {
+                return alert('Invalid username or password');
+            }
+
+            // credentials valid – simulate login by setting a dummy token
+            try { sessionStorage.setItem(TOKEN_KEY, 'dummy-admin-token'); } catch (e) { /* ignore */ }
+            try { sessionStorage.setItem(USER_KEY, JSON.stringify({ username: 'Admin', name: 'Administrator' })); } catch (e) { }
+            const params = new URLSearchParams(window.location.search);
+            const redirect = params.get('redirect') || 'index.html';
+            window.location.href = redirect;
+        });
+
+        // Create/forgot actions removed per requirements; login is hard‑coded to Admin/Admin123@
+
+    </script>
+</body>
+
+</html>

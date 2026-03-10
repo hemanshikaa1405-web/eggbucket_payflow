@@ -1,0 +1,46 @@
+[
+  {
+    "id": "78051111-b98c-4855-9750-e0eacc69780e",
+    "username": "admin@example.com",
+    "name": "",
+    "password": "$2b$10$4VzJe5ZawhZlmrZaYPVvbO.XzsTKG6zmO82i4V1rED298Amadqini",
+    "createdAt": "2026-03-02T10:00:23.995Z",
+    "resetToken": "2e4dc89b9e86bcc54f3c25a852b844d6a18325fea67a1ef0",
+    "resetExpires": 1772449564971
+  },
+  {
+    "id": "9fb33dc4-a273-4c8d-953b-fb4a24dea8ee",
+    "username": "hemanshikaa1405@gmail.com",
+    "name": "hemanshikaa1405",
+    "password": "$2b$10$nRI29hlGUjgfRQsikpK5fOGi4sx.dVRkppqoLQnIbDwI1cymC.kcS",
+    "createdAt": "2026-03-02T10:04:49.835Z"
+  },
+  {
+    "id": "c3409acd-f8c1-4e43-8c44-14e61e1e18a9",
+    "username": "hemanshikaa1404@gmail.com",
+    "name": "hemanshikaa1404",
+    "password": "$2b$10$TyBnrBadhgfyOfcNxi5rFOFhdzz0gu1PkT1sy1W/dsWnFikqZOopu",
+    "createdAt": "2026-03-02T12:31:12.605Z"
+  },
+  {
+    "id": "b76fce3b-26c7-452e-93cd-9f4dd666947d",
+    "username": "test+ci@example.com",
+    "name": "CI Tester",
+    "password": "$2b$10$c/Dp3dH.T1Hz1ePU7hnp8eT3cyI2S3ogcJfrp301ryUz6HpRIyEHm",
+    "createdAt": "2026-03-02T13:01:56.091Z"
+  },
+  {
+    "id": "4e63a082-2cc7-4720-98ca-cfd23ceeb4aa",
+    "username": "Admin",
+    "name": "Admin",
+    "password": "$2b$10$aw1QDdUV/9ACh8sf.RrKEejHnKTqRYxVg6pf6i88sbmRD4GbVxD2e",
+    "createdAt": "2026-03-02T18:30:40.027Z"
+  },
+  {
+    "id": "06621d23-a16f-4400-a4c9-ed2acdde2102",
+    "username": "Jainmeet162003@gmail.com",
+    "name": "Jainmeet162003",
+    "password": "$2b$10$3ilFsJ8kClucOiLW.0jB1.mfmSkRFus/eDuC2j4/8YathBGlvuWay",
+    "createdAt": "2026-03-02T18:32:23.919Z"
+  }
+]

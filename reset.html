@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reset Password | EggBucket PayFlow</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main style="min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;">
+    <div style="max-width:420px; width:100%;">
+      <div style="text-align:center; margin-bottom:18px;">
+        <h1 style="margin:0;">Reset Password</h1>
+        <p style="margin:6px 0 0 0; color:var(--text-muted);">Enter a new password for your account</p>
+      </div>
+
+      <form id="reset-form" style="background:var(--card-bg); padding:18px; border-radius:10px; box-shadow:var(--shadow);">
+        <div class="form-group">
+          <label for="new-pass">New password</label>
+          <input id="new-pass" type="password" class="form-input" required>
+        </div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:12px;">
+          <button type="submit" class="btn btn-primary">Set password</button>
+        </div>
+      </form>
+      <p id="reset-msg" style="margin-top:12px; font-size:13px; color:var(--text-muted);"></p>
+    </div>
+  </main>
+
+  <script>
+    async function postJSON(url, body) {
+      const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      return res;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get('uid');
+    const token = params.get('token');
+
+    const form = document.getElementById('reset-form');
+    const msg = document.getElementById('reset-msg');
+
+    if (!uid || !token) {
+      msg.textContent = 'Missing reset token. Please use the link provided.';
+      form.style.display = 'none';
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const password = document.getElementById('new-pass').value.trim();
+      if (!password) return alert('Enter password');
+      try {
+        const resp = await postJSON('/api/auth/reset', { uid, token, password });
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) return alert(data.error || 'Reset failed');
+        alert('Password reset successfully. Please sign in.');
+        window.location.href = 'login.html';
+      } catch (err) {
+        console.error(err);
+        alert('Reset error');
+      }
+    });
+  </script>
+</body>
+</html>

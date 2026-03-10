@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: salescalc-db-dev
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hemani1405
+      POSTGRES_DB: salescalc
+    ports:
+      - "5432:5432"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: salescalc-api-dev
+    command: [ "sh", "-c", "npx prisma generate && npx prisma db push && npm run dev" ]
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      DATABASE_URL: "postgresql://postgres:hemani1405@db:5432/salescalc?schema=public"
+      PORT: 3000
+    depends_on:
+      - db
+    ports:
+      - "3000:3000"
+
+  frontend:
+    image: python:3.9-slim
+    container_name: salescalc-web-dev
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: [ "python3", "-m", "http.server", "80" ]
+    depends_on:
+      - backend
+    ports:
+      - "8000:80"

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EggBucket PayFlow | Simplified Salary Calculations</title>
+    <meta name="description"
+        content="Salary calculations, simplified. Enter tray sales for each employee, and instantly see their total salary with tiered incentives calculated automatically.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Polished appearance for Dashboard + Logout on index */
+        #sc-auth-actions {
+            display: inline-flex !important;
+            gap: 6px !important;
+            /* small pleasant gap */
+            align-items: center !important;
+        }
+
+        /* Make the two controls slightly smaller and tighter so they look balanced */
+        #sc-auth-actions>a,
+        #sc-auth-actions>button {
+            font-size: 14px !important;
+            padding: 6px 10px !important;
+            border-radius: 10px !important;
+            box-shadow: none !important;
+        }
+
+        /* Keep icon spacing subtle */
+        #sc-auth-actions svg {
+            vertical-align: middle;
+        }
+
+        #sc-auth-actions button span {
+            margin-left: 6px;
+        }
+
+        /* Remove any interfering margins */
+        #sc-auth-actions>* {
+            margin: 0 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Initialize Supabase globally -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabaseClient.js"></script>
+    <script src="auth.js"></script>
+
+    <!-- Header Navigation -->
+    <div class="header-wrapper">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <img src="assets/FINAL LOGO.png" alt="Egg Bucket Logo" class="logo-img" />
+                </div>
+                <span class="logo-text">EggBucket PayFlow</span>
+            </div>
+            <a href="dashboard.html" class="btn btn-primary btn-sm">
+                Dashboard
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                </svg>
+            </a>
+        </header>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero section-base">
+        <div class="pill">
+            <span class="pill-icon">₹</span>
+            <span class="pill-text">Tray-based incentive engine</span>
+        </div>
+        <h1 class="hero-title">
+            Salary calculations,<br>
+            <span class="highlight">simplified</span>
+        </h1>
+        <p class="hero-subtitle">
+            Enter tray sales for each employee, and instantly see their<br>
+            total salary with tiered incentives calculated automatically.
+        </p>
+        <a href="calculator.html" class="btn btn-primary btn-lg">
+            Open Calculator
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+        </a>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features section-alt">
+        <div class="section-header">
+            <h2>Everything you need</h2>
+            <p>Manage employees and compute salaries in seconds.</p>
+        </div>
+        <div class="feature-grid">
+            <!-- Feature 1 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                </div>
+                <h3>Employee Directory</h3>
+                <p>Add and manage your team members in one centralized place.</p>
+            </div>
+            <!-- Feature 2 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+                        <line x1="8" y1="6" x2="16" y2="6"></line>
+                        <line x1="16" y1="14" x2="16.01" y2="14"></line>
+                        <line x1="12" y1="14" x2="12.01" y2="14"></line>
+                        <line x1="8" y1="14" x2="8.01" y2="14"></line>
+                        <line x1="16" y1="18" x2="16.01" y2="18"></line>
+                        <line x1="12" y1="18" x2="12.01" y2="18"></line>
+                        <line x1="8" y1="18" x2="8.01" y2="18"></line>
+                        <line x1="16" y1="10" x2="16.01" y2="10"></line>
+                        <line x1="12" y1="10" x2="12.01" y2="10"></line>
+                        <line x1="8" y1="10" x2="8.01" y2="10"></line>
+                    </svg>
+                </div>
+                <h3>EggBucket PayFlow</h3>
+                <p>Automatic incentive calculation based on tray sales performance tiers.</p>
+            </div>
+            <!-- Feature 3 -->
+            <div class="feature-card">
+                <div class="feature-icon-wrapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+                        <polyline points="16 7 22 7 22 13"></polyline>
+                    </svg>
+                </div>
+                <h3>Performance Tracking</h3>
+                <p>Track monthly tray sales and see how incentives scale with performance.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Incentive Tiers Section -->
+    <section class="tiers section-base border-top">
+        <div class="section-header">
+            <h2>Incentive tiers</h2>
+            <p>Salary scales proportionally with monthly tray sales.</p>
+        </div>
+        <div class="tier-grid">
+            <!-- Tier 1 -->
+            <div class="tier-card">
+                <div class="tier-label">BASE</div>
+                <div class="tier-value">Up to 3,000</div>
+                <div class="tier-subtext">trays / month</div>
+                <div class="tier-badge">₹15,000</div>
+            </div>
+            <!-- Tier 2 -->
+            <div class="tier-card">
+                <div class="tier-label">TIER 1</div>
+                <div class="tier-value">6,000</div>
+                <div class="tier-subtext">trays / month</div>
+                <div class="tier-badge">₹+5,000</div>
+            </div>
+            <!-- Tier 3 -->
+            <div class="tier-card">
+                <div class="tier-label">TIER 2</div>
+                <div class="tier-value">9,000</div>
+                <div class="tier-subtext">trays / month</div>
+                <div class="tier-badge">₹+10,000</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <div class="footer-wrapper">
+        <footer class="footer">
+            <div class="footer-left">© 2026 EggBucket PayFlow</div>
+            <div class="footer-right"></div>
+        </footer>
+    </div>
+</body>
+
+</html>
