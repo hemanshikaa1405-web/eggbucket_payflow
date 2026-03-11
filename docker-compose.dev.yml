@@ -1,14 +1,4 @@
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: salescalc-db-dev
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: hemani1405
-      POSTGRES_DB: salescalc
-    ports:
-      - "5432:5432"
-
   backend:
     build:
       context: .
@@ -19,10 +9,8 @@ services:
       - .:/app
       - /app/node_modules
     environment:
-      DATABASE_URL: "postgresql://postgres:hemani1405@db:5432/salescalc?schema=public"
+      DATABASE_URL: ${DATABASE_URL}
       PORT: 3000
-    depends_on:
-      - db
     ports:
       - "3000:3000"
 

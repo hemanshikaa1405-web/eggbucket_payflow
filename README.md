@@ -11,6 +11,16 @@ npm start
 
 Open in browser: http://localhost:3000
 
+Database
+
+- The frontend reads/writes data directly in Supabase (via `supabaseClient.js`).
+- The backend API (used by downloads/fallbacks) must point to the **same Supabase Postgres** database, otherwise deleted/edited items can “reappear”.
+- Set `DATABASE_URL` in `.env` to your Supabase Postgres connection string (Project Settings → Database → Connection string), for example:
+
+```bash
+DATABASE_URL="postgresql://postgres:<SUPABASE_DB_PASSWORD>@db.<PROJECT_REF>.supabase.co:5432/postgres?schema=public&sslmode=require"
+```
+
 Authentication (demo)
 
 - The app uses a simple client-side sign-in. Open `/login.html` and enter any username/password. This stores a local flag in `localStorage`.

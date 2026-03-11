@@ -786,8 +786,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            recordData.id = editingRecordId || Date.now().toString();
-            recordData.createdAt = editingRecordId ? salaryHistory.find(r => r.id === editingRecordId)?.createdAt : new Date().toISOString();
+            if (editingRecordId) {
+                const existing = salaryHistory.find(r => r.id === editingRecordId);
+                recordData.id = editingRecordId;
+                recordData.createdAt = existing?.createdAt || new Date().toISOString();
+            } else {
+                recordData.id = crypto.randomUUID();
+                recordData.createdAt = new Date().toISOString();
+            }
 
             // Save to Supabase instead of localStorage
             const saved = await saveRecord(recordData);

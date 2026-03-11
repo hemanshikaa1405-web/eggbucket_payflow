@@ -12,8 +12,12 @@ const prisma = new PrismaClient();
 const app = express();
 app.use(cors());
 app.use(express.json());
+if (!process.env.DATABASE_URL) {
+    throw new Error('Missing DATABASE_URL. Set it to your Supabase Postgres connection string so the API and frontend stay in sync.');
+}
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:password@db.uvhwmgyokkjcuujjesid.supabase.co:5432/postgres',
+    connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
 });
 // Trust first proxy (e.g. when running behind a tunneling service) to allow express-rate-limit

@@ -1,17 +1,4 @@
 services:
-  db:
-    image: postgres:16-alpine
-    container_name: salescalc-db
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-hemani1405}
-      POSTGRES_DB: ${POSTGRES_DB:-salescalc}
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
   backend:
     build:
       context: .
@@ -19,10 +6,8 @@ services:
     container_name: salescalc-api
     restart: always
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-hemani1405}@db:5432/${POSTGRES_DB:-salescalc}?schema=public"
+      DATABASE_URL: ${DATABASE_URL}
       PORT: 3000
-    depends_on:
-      - db
     ports:
       - "3000:3000"
 
@@ -37,5 +22,3 @@ services:
     ports:
       - "80:80"
 
-volumes:
-  postgres_data:
