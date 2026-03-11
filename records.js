@@ -566,7 +566,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('📊 Record structure:', Object.keys(recordData));
                     const { data, error } = await supabase
                         .from('SalaryRecord')
-                        .insert([recordData]);
+                        .upsert([recordData], { onConflict: 'id' });
 
                     if (error) {
                         console.error('❌ Supabase insert error details:', error);
