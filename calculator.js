@@ -12,14 +12,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('calc-form');
     const employeeSelect = document.getElementById('calc-employee');
     const monthInput = document.getElementById('calc-month');
-    const traysInput = document.getElementById('calc-trays');
+    const incentiveInput = document.getElementById('calc-incentive');
     const aqCountInput = document.getElementById('calc-aq-count');
     const aqCostInput = document.getElementById('calc-aq-cost');
     const monthlySalaryInput = document.getElementById('calc-monthly-salary');
     const bonusInput = document.getElementById('calc-bonus');
 
     // Form groups for conditional display
-    const traysGroup = document.querySelector('.calc-form-group:has(#calc-trays)');
+    const incentiveGroup = document.querySelector('.calc-form-group:has(#calc-incentive)');
     const aqCountGroup = document.getElementById('aq-count-group');
     const aqCostGroup = document.getElementById('aq-cost-group');
     const monthlySalaryGroup = document.getElementById('monthly-salary-group');
@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listeners for live updates
         employeeSelect.addEventListener('change', handleEmployeeChange);
         monthInput.addEventListener('change', updateLivePreview);
-        traysInput.addEventListener('input', updateLivePreview);
+        incentiveInput.addEventListener('input', updateLivePreview);
         aqCountInput.addEventListener('input', updateLivePreview);
         aqCostInput.addEventListener('input', updateLivePreview);
         monthlySalaryInput.addEventListener('input', updateLivePreview);
@@ -174,12 +174,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Reset all groups
-        traysGroup.style.display = 'none';
+        incentiveGroup.style.display = 'none';
         aqCountGroup.style.display = 'none';
         aqCostGroup.style.display = 'none';
         monthlySalaryGroup.style.display = 'none';
 
-        traysInput.required = false;
+        incentiveInput.required = false;
         aqCountInput.required = false;
         aqCostInput.required = false;
         monthlySalaryInput.required = false;
@@ -196,9 +196,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 monthlySalaryGroup.style.display = 'block';
                 monthlySalaryInput.required = true;
             } else {
-                // Show trays field for Sales-cum-Delivery Fleet and others
-                traysGroup.style.display = 'block';
-                traysInput.required = true;
+                // Show incentives field for Sales-cum-Delivery Fleet
+                incentiveGroup.style.display = 'block';
+                incentiveInput.required = true;
             }
         }
 
@@ -296,52 +296,27 @@ document.addEventListener('DOMContentLoaded', () => {
             infoMonthlySalary.textContent = formatter.format(monthlySalary);
 
         } else {
-            // Regular tray-based calculation
-            const trays = parseInt(traysInput.value, 10);
+            // Sales cum Delivery Fleet — manual incentive entry
+            const manualIncentive = parseInt(incentiveInput.value, 10);
 
-            if (isNaN(trays) || trays < 0) {
+            if (isNaN(manualIncentive) || manualIncentive < 0) {
                 resetDisplay();
                 return;
             }
 
-            try {
-                const result = calculateSalary({ units: trays });
-                baseSalary = result.baseSalary;
-                incentive = result.incentive;
-                totalSalary = result.totalSalary + bonus;
+            baseSalary = 15000;
+            incentive = manualIncentive;
+            totalSalary = baseSalary + incentive + bonus;
 
-                if (result.breakdownInfo.currentTier === 'Base') {
-                    breakdownBadge.textContent = 'Base Only';
-                    breakdownBadge.style.color = '#9B6A4F';
-                    breakdownBadge.style.backgroundColor = 'rgba(249, 115, 22, 0.07)';
-                    breakdownBadge.style.borderColor = 'rgba(249, 115, 22, 0.15)';
-                } else if (result.breakdownInfo.currentTier === 'Tier 1') {
-                    breakdownBadge.textContent = 'Tier 1';
-                    breakdownBadge.style.color = '#C2500A';
-                    breakdownBadge.style.backgroundColor = 'rgba(249, 115, 22, 0.12)';
-                    breakdownBadge.style.borderColor = 'rgba(249, 115, 22, 0.28)';
-                } else {
-                    breakdownBadge.textContent = 'Tier 2';
-                    breakdownBadge.style.color = '#92400E';
-                    breakdownBadge.style.backgroundColor = 'rgba(180, 83, 9, 0.12)';
-                    breakdownBadge.style.borderColor = 'rgba(180, 83, 9, 0.28)';
-                }
+            breakdownBadge.textContent = 'Sales Fleet';
+            breakdownBadge.style.color = '#C2500A';
+            breakdownBadge.style.backgroundColor = 'rgba(249, 115, 22, 0.10)';
+            breakdownBadge.style.borderColor = 'rgba(249, 115, 22, 0.22)';
 
-                // Show sales section, hide others
-                progressSectionSales.style.display = 'block';
-                progressSectionAQ.style.display = 'none';
-                progressSectionFixed.style.display = 'none';
-
-                const MAX_SCALE = 9000;
-                const visualTrays = Math.min(trays, MAX_SCALE);
-                const percentage = (visualTrays / MAX_SCALE) * 100;
-                progressBarFill.style.width = `${percentage}%`;
-
-            } catch (err) {
-                console.error("Calculation error:", err);
-                resetDisplay();
-                return;
-            }
+            // Hide all progress sections
+            progressSectionSales.style.display = 'none';
+            progressSectionAQ.style.display = 'none';
+            progressSectionFixed.style.display = 'none';
         }
 
         breakdownTotal.textContent = formatter.format(totalSalary);
@@ -471,28 +446,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: emp.department === 'Interns' ? 'intern' : 'supervisor'
             };
         } else {
-            const trays = parseInt(traysInput.value, 10);
+            const manualIncentive = parseInt(incentiveInput.value, 10);
 
-            if (isNaN(trays) || trays < 0) {
-                alert("Please fill in all details correctly.");
+            if (isNaN(manualIncentive) || manualIncentive < 0) {
+                alert("Please fill in the incentive amount correctly.");
                 return;
             }
 
-            const result = calculateSalary({ units: trays });
-            const totalSalary = result.totalSalary + bonus;
+            const baseSalary = 15000;
+            const totalSalary = baseSalary + manualIncentive + bonus;
 
             recordData = {
                 employeeId: emp.id,
                 employeeName: emp.name,
                 month: monthVal,
-                trays: trays,
                 bonus: bonus,
-                baseSalary: result.baseSalary,
-                incentive: result.incentive,
+                baseSalary: baseSalary,
+                incentive: manualIncentive,
                 totalSalary: totalSalary,
-                inputs: { units: trays, bonus: bonus },
-                results: result,
-                type: 'tray_sales'
+                inputs: { incentive: manualIncentive, bonus: bonus },
+                type: 'sales_fleet'
             };
         }
 
@@ -505,7 +478,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (saved) {
                 await loadData();
                 // Reset all inputs
-                traysInput.value = 0;
+                incentiveInput.value = 0;
                 aqCountInput.value = 0;
                 aqCostInput.value = 0;
                 monthlySalaryInput.value = 0;
@@ -592,7 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             ${rec.type === 'aq_fleet' ? `${rec.aqCount.toLocaleString('en-IN')} AQ customers` :
                     rec.type === 'intern' ? `${rec.monthlySalary.toLocaleString('en-IN')} salary` :
                         rec.type === 'supervisor' ? `${rec.monthlySalary.toLocaleString('en-IN')} salary` :
-                            `${rec.trays.toLocaleString('en-IN')} trays`
+                            `Incentive: ${formatter.format(rec.incentive || 0)}`
                 }
                         </div>
                     </div>

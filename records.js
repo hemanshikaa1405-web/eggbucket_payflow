@@ -24,13 +24,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const addRecordForm = document.getElementById('add-record-form');
     const recEmployee = document.getElementById('rec-employee');
     const recMonth = document.getElementById('rec-month');
-    const recTrays = document.getElementById('rec-trays');
+    const recIncentive = document.getElementById('rec-incentive');
     const recAqCount = document.getElementById('rec-aq-count');
     const recAqCost = document.getElementById('rec-aq-cost');
     const recMonthlySalary = document.getElementById('rec-monthly-salary');
     const recBonus = document.getElementById('rec-bonus');
 
-    const recTraysGroup = document.getElementById('rec-trays-group');
+    const recIncentiveGroup = document.getElementById('rec-incentive-group');
     const recAqCountGroup = document.getElementById('rec-aq-count-group');
     const recAqCostGroup = document.getElementById('rec-aq-cost-group');
     const recMonthlySalaryGroup = document.getElementById('rec-monthly-salary-group');
@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     } else if (r.type === 'intern' || r.type === 'supervisor') {
                         details = `Monthly: ₹${r.monthlySalary}`;
                     } else {
-                        details = `${r.trays} Trays`;
+                        details = `Incentive: ₹${r.incentive || 0}`;
                     }
                     if (r.bonus) details += ` + ₹${r.bonus} bonus`;
 
@@ -468,7 +468,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cancelModalBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
 
-        recTrays.addEventListener('input', updatePreview);
+        recIncentive.addEventListener('input', updatePreview);
         recAqCount && recAqCount.addEventListener('input', updatePreview);
         recAqCost && recAqCost.addEventListener('input', updatePreview);
         recMonthlySalary && recMonthlySalary.addEventListener('input', updatePreview);
@@ -621,7 +621,7 @@ document.addEventListener('DOMContentLoaded', () => {
             recEmployee.value = rec.employeeId;
             recEmployee.classList.add('has-value');
             recMonth.value = rec.month;
-            recTrays.value = rec.trays || '';
+            recIncentive.value = rec.incentive || '';
             recAqCount.value = rec.aqCount || '';
             recAqCost.value = rec.aqCost || '';
             recMonthlySalary.value = rec.monthlySalary || '';
@@ -671,14 +671,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     total = base + bonus;
                 }
             } else {
-                const trays = parseInt(recTrays.value, 10);
-                if (!isNaN(trays) && trays >= 0 && typeof window.calculateSalary === 'function') {
-                    try {
-                        const result = window.calculateSalary({ units: trays });
-                        base = result.baseSalary;
-                        incentive = result.incentive;
-                        total = result.totalSalary + bonus;
-                    } catch (e) { }
+                const manualIncentive = parseInt(recIncentive.value, 10);
+                if (!isNaN(manualIncentive) && manualIncentive >= 0) {
+                    base = 15000;
+                    incentive = manualIncentive;
+                    total = base + incentive + bonus;
                 }
             }
         }
@@ -697,13 +694,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const empId = recEmployee.value;
         const emp = employees.find(e => e.id === empId);
 
-        recTraysGroup.style.display = 'none';
+        recIncentiveGroup.style.display = 'none';
         recAqCountGroup.style.display = 'none';
         recAqCostGroup.style.display = 'none';
         recMonthlySalaryGroup.style.display = 'none';
         recBonusGroup.style.display = 'none';
 
-        recTrays.required = false;
+        recIncentive.required = false;
         recAqCount.required = false;
         recAqCost.required = false;
         recMonthlySalary.required = false;
@@ -720,8 +717,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 recMonthlySalaryGroup.style.display = 'block';
                 recMonthlySalary.required = true;
             } else {
-                recTraysGroup.style.display = 'block';
-                recTrays.required = true;
+                recIncentiveGroup.style.display = 'block';
+                recIncentive.required = true;
             }
         }
     }
@@ -772,27 +769,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputs: { monthlySalary, bonus }
             };
         } else {
-            const trays = parseInt(recTrays.value, 10);
-            if (isNaN(trays) || trays < 0) return;
-            let salaryResult;
-            try {
-                salaryResult = window.calculateSalary({ units: trays });
-            } catch (err) {
-                console.error('Salary calculation failed', err);
-                return;
-            }
-            const totalSalary = salaryResult.totalSalary + bonus;
+            const manualIncentive = parseInt(recIncentive.value, 10);
+            if (isNaN(manualIncentive) || manualIncentive < 0) return;
+            const baseSalary = 15000;
+            const totalSalary = baseSalary + manualIncentive + bonus;
             recordData = {
                 employeeId: employee.id,
                 month,
-                type: 'tray_sales',
-                trays,
+                type: 'sales_fleet',
                 bonus,
-                baseSalary: salaryResult.baseSalary,
-                incentive: salaryResult.incentive,
+                baseSalary,
+                incentive: manualIncentive,
                 totalSalary,
-                inputs: { units: trays, bonus },
-                results: salaryResult
+                inputs: { incentive: manualIncentive, bonus }
             };
         }
 
@@ -963,7 +952,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     ${rec.type === 'aq_fleet' ? `${rec.aqCount.toLocaleString('en-IN')} AQ @ ${formatter.format(rec.aqCost)}` :
                         rec.type === 'intern' ? `${formatter.format(rec.monthlySalary)} salary` :
                             rec.type === 'supervisor' ? `${formatter.format(rec.monthlySalary)} salary` :
-                                `${rec.trays.toLocaleString('en-IN')} trays`
+                                `Incentive: ${formatter.format(rec.incentive || 0)}`
                     }
                                 </div>
                                 <div class="record-stat-pill">

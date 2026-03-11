@@ -67,7 +67,12 @@
                 </a>
                 <span style="margin-left: auto;"></span>
                 <button id="logout-btn" class="btn btn-primary btn-sm" type="button" style="cursor: pointer;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
                     Logout
                 </button>
             </nav>
@@ -113,7 +118,9 @@
                         <option value="10">Nov</option>
                         <option value="11">Dec</option>
                     </select>
-                    <svg class="select-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg class="select-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
                         <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                 </div>
@@ -128,7 +135,12 @@
                     Add Record
                 </a>
                 <button id="download-report-btn" class="btn btn-secondary btn-sm" style="margin-left:8px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7 10 12 15 17 10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
                     Download Report
                 </button>
             </div>
@@ -190,11 +202,11 @@
                     <input type="month" id="rec-month" class="form-input" required>
                 </div>
 
-                <div class="form-group" id="rec-trays-group">
-                    <label for="rec-trays">Total Trays Sold <span class="required">*</span></label>
-                    <input type="number" id="rec-trays" class="form-input" placeholder="e.g. 5000" min="0" required>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Salary is auto-calculated
-                        from tray count</p>
+                <div class="form-group" id="rec-incentive-group">
+                    <label for="rec-incentive">Incentives <span class="required">*</span></label>
+                    <input type="number" id="rec-incentive" class="form-input" placeholder="e.g. 2000" min="0" required>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Enter the incentive amount
+                        for this month</p>
                 </div>
 
                 <div class="form-group" id="rec-aq-count-group" style="display:none;">
@@ -257,7 +269,7 @@
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="supabaseClient.js"></script>
+    <script src="supabaseClient.js"></script>
 </body>
 
 </html>

@@ -166,9 +166,9 @@ section {
 }
 
 .logo-img {
-    width: 80px;
-    height: 80px;
-    object-fit: cover;
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
     border-radius: 9px;
 }
 
@@ -189,8 +189,9 @@ section {
     gap: 6px !important;
     align-items: center !important;
 }
-#sc-auth-actions > a,
-#sc-auth-actions > button {
+
+#sc-auth-actions>a,
+#sc-auth-actions>button {
     font-size: 14px !important;
     padding: 6px 10px !important;
     border-radius: 10px !important;
@@ -199,9 +200,18 @@ section {
     align-items: center !important;
     line-height: 1 !important;
 }
-#sc-auth-actions svg { vertical-align: middle; }
-#sc-auth-actions button span { margin-left: 6px; }
-#sc-auth-actions > * { margin: 0 !important; }
+
+#sc-auth-actions svg {
+    vertical-align: middle;
+}
+
+#sc-auth-actions button span {
+    margin-left: 6px;
+}
+
+#sc-auth-actions>* {
+    margin: 0 !important;
+}
 
 @media (min-width: 768px) {
     .dashboard-header {
