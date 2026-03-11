@@ -56,10 +56,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // State Variables
     let employees = [];
     let historyRecords = [];
-    let editingRecordId = null;
-
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const submitBtnOriginalHTML = submitBtn ? submitBtn.innerHTML : '';
 
     // Try loading logic file if missing
     if (typeof calculateSalary !== 'function') {
@@ -136,39 +132,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             populateEmployees();
             renderHistory();
-            resetEditingStateIfInvalid();
         } catch (error) {
             console.error('Error loading data:', error);
             alert('Failed to load data.');
         }
-    }
-
-    function setSubmitButtonEditing(isEditing) {
-        if (!submitBtn) return;
-        if (!isEditing) {
-            submitBtn.innerHTML = submitBtnOriginalHTML;
-            return;
-        }
-        submitBtn.innerHTML = `
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-            </svg>
-            Save Changes
-        `;
-    }
-
-    function resetEditingState() {
-        editingRecordId = null;
-        setSubmitButtonEditing(false);
-    }
-
-    function resetEditingStateIfInvalid() {
-        if (!editingRecordId) return;
-        const stillExists = historyRecords.some(r => r.id === editingRecordId);
-        if (!stillExists) resetEditingState();
     }
 
     function populateEmployees() {
@@ -503,20 +470,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            if (editingRecordId) {
-                const existing = historyRecords.find(r => r.id === editingRecordId);
-                recordData.id = editingRecordId;
-                recordData.createdAt = existing?.createdAt || new Date().toISOString();
-            } else {
-                recordData.id = crypto.randomUUID();
-                recordData.createdAt = new Date().toISOString();
-            }
+            recordData.id = crypto.randomUUID();
+            recordData.createdAt = new Date().toISOString();
 
             // Save to Supabase instead of localStorage
             const saved = await saveSalary(recordData);
             if (saved) {
                 await loadData();
-                resetEditingState();
                 // Reset all inputs
                 incentiveInput.value = 0;
                 aqCountInput.value = 0;
@@ -533,31 +493,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     historyList.addEventListener('click', async (e) => {
         const deleteBtn = e.target.closest('.history-delete-btn');
-        const editBtn = e.target.closest('.history-edit-btn');
-
-        if (editBtn) {
-            const id = editBtn.dataset.id;
-            const rec = historyRecords.find(r => r.id === id);
-            if (!rec) return;
-
-            editingRecordId = id;
-            setSubmitButtonEditing(true);
-
-            employeeSelect.value = rec.employeeId || '';
-            monthInput.value = rec.month || '';
-            bonusInput.value = rec.bonus != null ? String(rec.bonus) : '0';
-
-            handleEmployeeChange();
-
-            incentiveInput.value = rec.incentive != null ? String(rec.incentive) : '0';
-            aqCountInput.value = rec.aqCount != null ? String(rec.aqCount) : '0';
-            aqCostInput.value = rec.aqCost != null ? String(rec.aqCost) : '0';
-            monthlySalaryInput.value = rec.monthlySalary != null ? String(rec.monthlySalary) : '0';
-
-            updateLivePreview();
-            try { form.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (err) { }
-            return;
-        }
 
         if (deleteBtn) {
             const id = deleteBtn.dataset.id;
@@ -586,7 +521,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.log('✅ Record deleted successfully');
                     alert('Record deleted successfully');
                     await loadData();
-                    if (editingRecordId === id) resetEditingState();
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -617,9 +551,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="history-card-top">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     ${escapeHTML(empName)} (${escapeHTML(empDept)})
-                    <button class="history-action-btn history-edit-btn" data-id="${rec.id}" title="Edit record" aria-label="Edit record">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                    </button>
                     <button class="history-action-btn history-delete-btn" data-id="${rec.id}" title="Delete record" aria-label="Delete record">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
