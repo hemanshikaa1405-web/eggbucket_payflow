@@ -208,8 +208,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (incentivesGroup) incentivesGroup.style.display = 'block';
                 monthlySalaryInput.required = true;
             } else {
-                // Show incentives field for Sales-cum-Delivery Fleet
+                // Sales-cum-Delivery Fleet: monthly salary + manual incentive
+                monthlySalaryGroup.style.display = 'block';
                 if (incentiveGroup) incentiveGroup.style.display = 'block';
+                monthlySalaryInput.required = true;
                 incentiveInput.required = true;
             }
         }
@@ -319,15 +321,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } else {
-            // Sales cum Delivery Fleet — manual incentive entry
+            // Sales-cum-Delivery Fleet — monthly salary + manual incentive
+            const monthlySalary = parseInt(monthlySalaryInput.value, 10);
             const manualIncentive = parseInt(incentiveInput.value, 10);
 
-            if (isNaN(manualIncentive) || manualIncentive < 0) {
+            if (isNaN(monthlySalary) || monthlySalary < 0 || isNaN(manualIncentive) || manualIncentive < 0) {
                 resetDisplay();
                 return;
             }
 
-            baseSalary = 15000;
+            baseSalary = monthlySalary;
             incentive = manualIncentive;
             totalSalary = baseSalary + incentive + bonus;
 
@@ -474,25 +477,31 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: isIntern ? 'intern' : 'supervisor'
             };
         } else {
+            const monthlySalary = parseInt(monthlySalaryInput.value, 10);
             const manualIncentive = parseInt(incentiveInput.value, 10);
 
+            if (isNaN(monthlySalary) || monthlySalary < 0) {
+                alert("Please fill in the monthly salary correctly.");
+                return;
+            }
             if (isNaN(manualIncentive) || manualIncentive < 0) {
                 alert("Please fill in the incentive amount correctly.");
                 return;
             }
 
-            const baseSalary = 15000;
+            const baseSalary = monthlySalary;
             const totalSalary = baseSalary + manualIncentive + bonus;
 
             recordData = {
                 employeeId: emp.id,
                 employeeName: emp.name,
                 month: monthVal,
+                monthlySalary: monthlySalary,
                 bonus: bonus,
                 baseSalary: baseSalary,
                 incentive: manualIncentive,
                 totalSalary: totalSalary,
-                inputs: { incentive: manualIncentive, bonus: bonus },
+                inputs: { monthlySalary: monthlySalary, incentive: manualIncentive, bonus: bonus },
                 type: 'sales_fleet'
             };
         }

@@ -686,9 +686,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     total = base + incentive + bonus;
                 }
             } else {
+                const msal = parseInt(recMonthlySalary.value, 10);
                 const manualIncentive = parseInt(recIncentive.value, 10);
-                if (!isNaN(manualIncentive) && manualIncentive >= 0) {
-                    base = 15000;
+                if (!isNaN(msal) && msal >= 0 && !isNaN(manualIncentive) && manualIncentive >= 0) {
+                    base = msal;
                     incentive = manualIncentive;
                     total = base + incentive + bonus;
                 }
@@ -744,7 +745,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (incentivesGroup) incentivesGroup.style.display = 'block';
                 recMonthlySalary.required = true;
             } else {
+                // Sales-cum-Delivery Fleet: monthly salary + manual incentive
+                recMonthlySalaryGroup.style.display = 'block';
                 recIncentiveGroup.style.display = 'block';
+                recMonthlySalary.required = true;
                 recIncentive.required = true;
             }
         }
@@ -798,19 +802,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputs: { monthlySalary, incentives, bonus }
             };
         } else {
+            const monthlySalary = parseInt(recMonthlySalary.value, 10);
             const manualIncentive = parseInt(recIncentive.value, 10);
-            if (isNaN(manualIncentive) || manualIncentive < 0) return;
-            const baseSalary = 15000;
+            if (isNaN(monthlySalary) || monthlySalary < 0 || isNaN(manualIncentive) || manualIncentive < 0) return;
+            const baseSalary = monthlySalary;
             const totalSalary = baseSalary + manualIncentive + bonus;
             recordData = {
                 employeeId: employee.id,
                 month,
                 type: 'sales_fleet',
+                monthlySalary,
                 bonus,
                 baseSalary,
                 incentive: manualIncentive,
                 totalSalary,
-                inputs: { incentive: manualIncentive, bonus }
+                inputs: { monthlySalary, incentive: manualIncentive, bonus }
             };
         }
 
