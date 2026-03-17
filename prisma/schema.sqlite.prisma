@@ -20,23 +20,23 @@ model Employee {
 }
 
 model SalaryRecord {
-  id            String   @id @default(uuid())
-  employeeId    String
-  month         String
-  trays         Int?
-  bonus         Float?
-  type          String?
-  aqCount       Int?
-  aqCost        Float?
-  monthlySalary Float?
-  baseSalary    Float
-  incentive     Float
-  totalSalary   Float
-  inputs        Json
-  results       Json?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  id             String   @id @default(uuid())
+  employeeId     String
+  month          String
+  trays          Int?
+  bonus          Float?
+  type           String?
+  aqCount        Int?
+  aqCost         Float?
+  monthlySalary  Float?
+  baseSalary     Float
+  incentive      Float
+  totalSalary    Float
+  inputs         Json
+  results        Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  employee       Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@index([employeeId])
   @@index([month])

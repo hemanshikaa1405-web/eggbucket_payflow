@@ -13,13 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const employeeSelect = document.getElementById('calc-employee');
     const monthInput = document.getElementById('calc-month');
     const incentiveInput = document.getElementById('calc-incentive');
+    const incentivesInput = document.getElementById('calc-incentives');
     const aqCountInput = document.getElementById('calc-aq-count');
     const aqCostInput = document.getElementById('calc-aq-cost');
     const monthlySalaryInput = document.getElementById('calc-monthly-salary');
     const bonusInput = document.getElementById('calc-bonus');
 
     // Form groups for conditional display
-    const incentiveGroup = document.querySelector('.calc-form-group:has(#calc-incentive)');
+    const incentiveGroup = document.getElementById('incentive-group');
+    const incentivesGroup = document.getElementById('incentives-group');
     const aqCountGroup = document.getElementById('aq-count-group');
     const aqCostGroup = document.getElementById('aq-cost-group');
     const monthlySalaryGroup = document.getElementById('monthly-salary-group');
@@ -79,10 +81,17 @@ document.addEventListener('DOMContentLoaded', () => {
         employeeSelect.addEventListener('change', handleEmployeeChange);
         monthInput.addEventListener('change', updateLivePreview);
         incentiveInput.addEventListener('input', updateLivePreview);
+        if (incentivesInput) incentivesInput.addEventListener('input', updateLivePreview);
         aqCountInput.addEventListener('input', updateLivePreview);
         aqCostInput.addEventListener('input', updateLivePreview);
         monthlySalaryInput.addEventListener('input', updateLivePreview);
         bonusInput.addEventListener('input', updateLivePreview);
+    }
+
+    function isInternOrSupervisor(emp) {
+        if (!emp) return false;
+        const d = String(emp.department || emp.Department || '').trim().toLowerCase();
+        return d.includes('intern') || d.includes('executive supervisor');
     }
 
     async function loadData() {
@@ -174,12 +183,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Reset all groups
-        incentiveGroup.style.display = 'none';
+        if (incentiveGroup) incentiveGroup.style.display = 'none';
+        if (incentivesGroup) incentivesGroup.style.display = 'none';
         aqCountGroup.style.display = 'none';
         aqCostGroup.style.display = 'none';
         monthlySalaryGroup.style.display = 'none';
 
         incentiveInput.required = false;
+        if (incentivesInput) incentivesInput.required = false;
         aqCountInput.required = false;
         aqCostInput.required = false;
         monthlySalaryInput.required = false;
@@ -191,13 +202,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 aqCostGroup.style.display = 'block';
                 aqCountInput.required = true;
                 aqCostInput.required = true;
-            } else if (emp.department === 'Interns' || emp.department === "Executive Supervisor's") {
-                // Show monthly salary field
+            } else if (isInternOrSupervisor(emp)) {
+                // Show monthly salary and incentives for Interns and Executive Supervisors
                 monthlySalaryGroup.style.display = 'block';
+                if (incentivesGroup) incentivesGroup.style.display = 'block';
                 monthlySalaryInput.required = true;
             } else {
                 // Show incentives field for Sales-cum-Delivery Fleet
-                incentiveGroup.style.display = 'block';
+                if (incentiveGroup) incentiveGroup.style.display = 'block';
                 incentiveInput.required = true;
             }
         }
@@ -262,9 +274,10 @@ document.addEventListener('DOMContentLoaded', () => {
             infoAqCount.textContent = aqCount.toLocaleString('en-IN');
             infoAqCost.textContent = formatter.format(aqCost);
 
-        } else if (emp.department === 'Interns' || emp.department === "Executive Supervisor's") {
-            // Monthly salary calculation for Interns and Executive Supervisors
+        } else if (isInternOrSupervisor(emp)) {
+            // Monthly salary + manual incentives for Interns and Executive Supervisors
             const monthlySalary = parseInt(monthlySalaryInput.value, 10);
+            const incentives = parseInt(incentivesInput && incentivesInput.value, 10) || 0;
 
             if (isNaN(monthlySalary) || monthlySalary < 0) {
                 resetDisplay();
@@ -272,8 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             baseSalary = monthlySalary;
-            incentive = 0; // No incentive for fixed salary roles
-            totalSalary = baseSalary + bonus;
+            incentive = incentives;
+            totalSalary = baseSalary + incentive + bonus;
 
             if (emp.department === 'Interns') {
                 breakdownBadge.textContent = 'Intern';
@@ -294,6 +307,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Populate fixed salary info
             infoMonthlySalary.textContent = formatter.format(monthlySalary);
+            const infoIncentivesWrap = document.getElementById('info-incentives-wrap');
+            const infoIncentives = document.getElementById('info-incentives');
+            if (infoIncentivesWrap && infoIncentives) {
+                if (incentive > 0) {
+                    infoIncentivesWrap.style.display = 'block';
+                    infoIncentives.textContent = formatter.format(incentive);
+                } else {
+                    infoIncentivesWrap.style.display = 'none';
+                }
+            }
 
         } else {
             // Sales cum Delivery Fleet — manual incentive entry
@@ -342,6 +365,9 @@ document.addEventListener('DOMContentLoaded', () => {
         progressSectionSales.style.display = 'none';
         progressSectionAQ.style.display = 'none';
         progressSectionFixed.style.display = 'none';
+
+        const infoIncentivesWrap = document.getElementById('info-incentives-wrap');
+        if (infoIncentivesWrap) infoIncentivesWrap.style.display = 'none';
     }
 
     async function saveSalary(record) {
@@ -423,15 +449,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 inputs: { aqCount: aqCount, aqCost: aqCost, bonus: bonus },
                 type: 'aq_fleet'
             };
-        } else if (emp.department === 'Interns' || emp.department === "Executive Supervisor's") {
+        } else if (isInternOrSupervisor(emp)) {
             const monthlySalary = parseInt(monthlySalaryInput.value, 10);
+            const incentives = parseInt(incentivesInput && incentivesInput.value, 10) || 0;
 
             if (isNaN(monthlySalary) || monthlySalary < 0) {
                 alert("Please fill in the monthly salary correctly.");
                 return;
             }
 
-            const totalSalary = monthlySalary + bonus;
+            const totalSalary = monthlySalary + incentives + bonus;
+            const isIntern = String(emp.department || '').toLowerCase().includes('intern');
 
             recordData = {
                 employeeId: emp.id,
@@ -440,10 +468,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 monthlySalary: monthlySalary,
                 bonus: bonus,
                 baseSalary: monthlySalary,
-                incentive: 0,
+                incentive: incentives,
                 totalSalary: totalSalary,
-                inputs: { monthlySalary: monthlySalary, bonus: bonus },
-                type: emp.department === 'Interns' ? 'intern' : 'supervisor'
+                inputs: { monthlySalary: monthlySalary, incentives: incentives, bonus: bonus },
+                type: isIntern ? 'intern' : 'supervisor'
             };
         } else {
             const manualIncentive = parseInt(incentiveInput.value, 10);
@@ -479,6 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 await loadData();
                 // Reset all inputs
                 incentiveInput.value = 0;
+                if (incentivesInput) incentivesInput.value = 0;
                 aqCountInput.value = 0;
                 aqCostInput.value = 0;
                 monthlySalaryInput.value = 0;
@@ -564,8 +593,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="history-meta-item">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
                             ${rec.type === 'aq_fleet' ? `${rec.aqCount.toLocaleString('en-IN')} AQ customers` :
-                    rec.type === 'intern' ? `${rec.monthlySalary.toLocaleString('en-IN')} salary` :
-                        rec.type === 'supervisor' ? `${rec.monthlySalary.toLocaleString('en-IN')} salary` :
+                    rec.type === 'intern' ? `${rec.monthlySalary.toLocaleString('en-IN')} salary${rec.incentive > 0 ? ` + ₹${rec.incentive.toLocaleString('en-IN')} incentives` : ''}` :
+                        rec.type === 'supervisor' ? `${rec.monthlySalary.toLocaleString('en-IN')} salary${rec.incentive > 0 ? ` + ₹${rec.incentive.toLocaleString('en-IN')} incentives` : ''}` :
                             `Incentive: ${formatter.format(rec.incentive || 0)}`
                 }
                         </div>

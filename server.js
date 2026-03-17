@@ -1,25 +1,32 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
 const cors = require('cors');
-const { Pool } = require('pg');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const Joi = require('joi');
 const path = require('path');
 require('dotenv').config();
 
+// Default to SQLite for local dev when DATABASE_URL is missing or placeholder
+if (!process.env.DATABASE_URL || process.env.DATABASE_URL.includes('<') || process.env.DATABASE_URL.includes('YOUR_')) {
+    process.env.DATABASE_URL = 'file:./prisma/dev.db';
+}
+const isPostgres = process.env.DATABASE_URL.startsWith('postgresql');
+
 const prisma = new PrismaClient();
 const app = express();
 app.use(cors());
 app.use(express.json());
-if (!process.env.DATABASE_URL) {
-    throw new Error('Missing DATABASE_URL. Set it to your Supabase Postgres connection string so the API and frontend stay in sync.');
-}
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-});
+// pg Pool only needed for Postgres (unused in current code, kept for compatibility)
+let pool = null;
+if (isPostgres) {
+    const { Pool } = require('pg');
+    pool = new Pool({
+        connectionString: process.env.DATABASE_URL,
+        ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+    });
+}
 // Trust first proxy (e.g. when running behind a tunneling service) to allow express-rate-limit
 // to safely read x-forwarded-for header without throwing errors. Adjust as needed for production.
 app.set('trust proxy', 1);

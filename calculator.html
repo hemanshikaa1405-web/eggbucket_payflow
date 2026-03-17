@@ -138,12 +138,12 @@
                         </div>
                     </div>
 
-                    <div class="calc-form-group">
+                    <div class="calc-form-group" id="incentive-group" style="display: none;">
                         <label for="calc-incentive">Incentives <span class="required">*</span></label>
                         <div class="number-input-wrapper">
                             <input type="number" id="calc-incentive" class="calc-input" value="0" min="0" required>
                         </div>
-                        <p class="input-hint">Enter the incentive amount for this month</p>
+                        <p class="input-hint">Enter the incentive amount for Sales-cum-Delivery Fleet</p>
                     </div>
 
                     <div class="calc-form-group" id="aq-count-group" style="display: none;">
@@ -168,6 +168,13 @@
                             <input type="number" id="calc-monthly-salary" class="calc-input" value="0" min="0">
                         </div>
                         <p class="input-hint">Enter the monthly salary</p>
+                    </div>
+
+                    <div class="calc-form-group" id="incentives-group" style="display: none;">
+                        <label for="calc-incentives">Incentives</label>
+                        <div class="number-input-wrapper">
+                            <input type="number" id="calc-incentives" class="calc-input" value="0" min="0">
+                        </div>
                     </div>
 
                     <div class="calc-form-group">
@@ -245,10 +252,15 @@
                             style="padding: 16px; background: rgba(124, 58, 237, 0.07); border-radius: 8px; border: 1px solid rgba(124, 58, 237, 0.15);">
                             <div style="font-size: 12px; color: #7C3AED; font-weight: 600; margin-bottom: 8px;">FIXED
                                 SALARY</div>
-                            <div>
-                                <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Monthly
-                                    Salary</div>
-                                <div style="font-size: 14px; font-weight: 600;" id="info-monthly-salary">₹0</div>
+                            <div style="display: grid; gap: 12px;">
+                                <div>
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Monthly Salary</div>
+                                    <div style="font-size: 14px; font-weight: 600;" id="info-monthly-salary">₹0</div>
+                                </div>
+                                <div id="info-incentives-wrap" style="display: none;">
+                                    <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Incentives</div>
+                                    <div style="font-size: 14px; font-weight: 600;" id="info-incentives">₹0</div>
+                                </div>
                             </div>
                         </div>
                     </div>

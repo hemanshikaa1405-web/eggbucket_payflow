@@ -28,12 +28,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const recAqCount = document.getElementById('rec-aq-count');
     const recAqCost = document.getElementById('rec-aq-cost');
     const recMonthlySalary = document.getElementById('rec-monthly-salary');
+    const recIncentives = document.getElementById('rec-incentives');
     const recBonus = document.getElementById('rec-bonus');
 
     const recIncentiveGroup = document.getElementById('rec-incentive-group');
     const recAqCountGroup = document.getElementById('rec-aq-count-group');
     const recAqCostGroup = document.getElementById('rec-aq-cost-group');
     const recMonthlySalaryGroup = document.getElementById('rec-monthly-salary-group');
+    const recIncentivesGroup = document.getElementById('rec-incentives-group');
     const recBonusGroup = document.getElementById('rec-bonus-group');
 
     const recPreview = document.getElementById('rec-preview');
@@ -316,42 +318,51 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('📋 Final records count:', records.length);
 
         try {
+            const escape = (v) => {
+                if (v == null || v === '') return '';
+                const s = String(v).replace(/"/g, '""');
+                return (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) ? `"${s}"` : s;
+            };
+
+            const formatMonth = (m) => {
+                if (!m) return '';
+                try {
+                    const d = new Date(m + '-01');
+                    return d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+                } catch (e) { return m; }
+            };
+
+            const formatType = (r) => {
+                if (r.type === 'aq_fleet') return 'AQ Fleet';
+                if (r.type === 'intern') return 'Intern';
+                if (r.type === 'supervisor') return 'Executive Supervisor';
+                return 'Sales Fleet';
+            };
+
             const rows = [];
-            const headers = ['Employee ID', 'Employee Name', 'Month', 'Details', 'Base Salary', 'Incentive', 'Total Salary'];
+            const headers = ['Employee Name', 'Department', 'Month', 'Type', 'Base Salary (₹)', 'Incentive (₹)', 'Bonus (₹)', 'Total Salary (₹)'];
             rows.push(headers.join(','));
 
             records.forEach(r => {
                 try {
                     const employee = employees ? employees.find(emp => emp.id === r.employeeId) : null;
                     const empName = employee ? employee.name : 'Unknown Employee';
-                    const month = r.month || '';
+                    const dept = employee ? (employee.department || '-') : '-';
+                    const month = formatMonth(r.month);
+                    const type = formatType(r);
                     const base = r.baseSalary != null ? r.baseSalary : '';
                     const incentive = r.incentive != null ? r.incentive : '';
+                    const bonus = r.bonus != null ? r.bonus : '';
                     const total = r.totalSalary != null ? r.totalSalary : '';
 
-                    let details = '';
-                    if (r.type === 'aq_fleet') {
-                        details = `${r.aqCount} AQ @ ₹${r.aqCost}`;
-                    } else if (r.type === 'intern' || r.type === 'supervisor') {
-                        details = `Monthly: ₹${r.monthlySalary}`;
-                    } else {
-                        details = `Incentive: ₹${r.incentive || 0}`;
-                    }
-                    if (r.bonus) details += ` + ₹${r.bonus} bonus`;
-
-                    const escape = (v) => {
-                        if (v == null || v === '') return '';
-                        const s = String(v).replace(/"/g, '""');
-                        return (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) ? `"${s}"` : s;
-                    };
-
                     rows.push([
-                        escape(r.employeeId || ''),
                         escape(empName),
+                        escape(dept),
                         escape(month),
-                        escape(details),
+                        escape(type),
                         escape(base),
                         escape(incentive),
+                        escape(bonus),
                         escape(total)
                     ].join(','));
                 } catch (recordError) {
@@ -359,7 +370,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            const csv = rows.join('\n');
+            // Add BOM for Excel UTF-8 compatibility; blank line after header for readability
+            const csv = '\uFEFF' + rows.join('\n');
 
             let fname = 'salary-records';
             if (employeeFilter && employeeFilter !== 'all') {
@@ -472,6 +484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recAqCount && recAqCount.addEventListener('input', updatePreview);
         recAqCost && recAqCost.addEventListener('input', updatePreview);
         recMonthlySalary && recMonthlySalary.addEventListener('input', updatePreview);
+        recIncentives && recIncentives.addEventListener('input', updatePreview);
         recBonus && recBonus.addEventListener('input', updatePreview);
 
         recEmployee.addEventListener('change', () => {
@@ -625,6 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
             recAqCount.value = rec.aqCount || '';
             recAqCost.value = rec.aqCost || '';
             recMonthlySalary.value = rec.monthlySalary || '';
+            recIncentives.value = rec.incentive != null && rec.incentive > 0 ? rec.incentive : '';
             recBonus.value = rec.bonus || '';
             handleRecEmployeeChange();
             updatePreview();
@@ -663,12 +677,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     incentive = aqCount * aqCost;
                     total = base + incentive + bonus;
                 }
-            } else if (emp.department === 'Interns' || emp.department === "Executive Supervisor's") {
+            } else if (isInternOrSupervisor(emp)) {
                 const msal = parseInt(recMonthlySalary.value, 10);
+                const incentives = parseInt(recIncentives && recIncentives.value, 10) || 0;
                 if (!isNaN(msal) && msal >= 0) {
                     base = msal;
-                    incentive = 0;
-                    total = base + bonus;
+                    incentive = incentives;
+                    total = base + incentive + bonus;
                 }
             } else {
                 const manualIncentive = parseInt(recIncentive.value, 10);
@@ -690,6 +705,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function isInternOrSupervisor(emp) {
+        if (!emp) return false;
+        const d = String(emp.department || emp.Department || '').trim().toLowerCase();
+        return d.includes('intern') || d.includes('executive supervisor');
+    }
+
     function handleRecEmployeeChange() {
         const empId = recEmployee.value;
         const emp = employees.find(e => e.id === empId);
@@ -699,22 +720,28 @@ document.addEventListener('DOMContentLoaded', () => {
         recAqCostGroup.style.display = 'none';
         recMonthlySalaryGroup.style.display = 'none';
         recBonusGroup.style.display = 'none';
+        const incentivesGroup = document.getElementById('rec-incentives-group');
+        if (incentivesGroup) incentivesGroup.style.display = 'none';
 
         recIncentive.required = false;
         recAqCount.required = false;
         recAqCost.required = false;
         recMonthlySalary.required = false;
         recBonus.required = false;
+        const incentivesInput = document.getElementById('rec-incentives');
+        if (incentivesInput) incentivesInput.required = false;
 
         if (emp) {
             recBonusGroup.style.display = 'block';
-            if (emp.department === 'Customer AQ Fleet') {
+            const dept = String(emp.department || emp.Department || '').trim();
+            if (dept === 'Customer AQ Fleet') {
                 recAqCountGroup.style.display = 'block';
                 recAqCostGroup.style.display = 'block';
                 recAqCount.required = true;
                 recAqCost.required = true;
-            } else if (emp.department === 'Interns' || emp.department === "Executive Supervisor's") {
+            } else if (isInternOrSupervisor(emp)) {
                 recMonthlySalaryGroup.style.display = 'block';
+                if (incentivesGroup) incentivesGroup.style.display = 'block';
                 recMonthlySalary.required = true;
             } else {
                 recIncentiveGroup.style.display = 'block';
@@ -753,20 +780,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 totalSalary,
                 inputs: { aqCount, aqCost, bonus }
             };
-        } else if (employee.department === 'Interns' || employee.department === "Executive Supervisor's") {
+        } else if (isInternOrSupervisor(employee)) {
             const monthlySalary = parseInt(recMonthlySalary.value, 10);
+            const incentives = parseInt(recIncentives && recIncentives.value, 10) || 0;
             if (isNaN(monthlySalary) || monthlySalary < 0) return;
-            const totalSalary = monthlySalary + bonus;
+            const totalSalary = monthlySalary + incentives + bonus;
+            const isIntern = String(employee.department || '').toLowerCase().includes('intern');
             recordData = {
                 employeeId: employee.id,
                 month,
-                type: employee.department === 'Interns' ? 'intern' : 'supervisor',
+                type: isIntern ? 'intern' : 'supervisor',
                 monthlySalary,
                 bonus,
                 baseSalary: monthlySalary,
-                incentive: 0,
+                incentive: incentives,
                 totalSalary,
-                inputs: { monthlySalary, bonus }
+                inputs: { monthlySalary, incentives, bonus }
             };
         } else {
             const manualIncentive = parseInt(recIncentive.value, 10);
@@ -965,10 +994,17 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="M7 15h0M2 9.5h20"></path></svg>
                                     Base: ${formatter.format(rec.baseSalary)}
                                 </div>
+                                ${(rec.type === 'intern' || rec.type === 'supervisor') ? (rec.incentive > 0 ? `
+                                <div class="record-stat-pill">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                                    Incentives: ${formatter.format(rec.incentive)}
+                                </div>
+                                ` : '') : `
                                 <div class="record-stat-pill">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
                                     Incentive: ${formatter.format(rec.incentive)}
                                 </div>
+                                `}
                                 ${rec.bonus ? `
                                 <div class="record-stat-pill">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M1 12h22"/></svg>

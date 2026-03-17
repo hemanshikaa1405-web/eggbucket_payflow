@@ -6,7 +6,7 @@
   "scripts": {
     "test": "node salaryEngine.test.js",
     "start": "node server.js",
-    "dev": "npx prisma generate && node server.js",
+    "dev": "npx prisma generate --schema=prisma/schema.sqlite.prisma && npx prisma db push --schema=prisma/schema.sqlite.prisma && node server.js",
     "vercel-build": "npx prisma generate"
   },
   "keywords": [],

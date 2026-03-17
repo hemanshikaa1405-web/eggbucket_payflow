@@ -203,7 +203,7 @@
                     <input type="month" id="rec-month" class="form-input" required>
                 </div>
 
-                <div class="form-group" id="rec-incentive-group">
+                <div class="form-group" id="rec-incentive-group" style="display:none;">
                     <label for="rec-incentive">Incentives <span class="required">*</span></label>
                     <input type="number" id="rec-incentive" class="form-input" placeholder="e.g. 2000" min="0" required>
                     <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Enter the incentive amount
@@ -222,6 +222,12 @@
                 <div class="form-group" id="rec-monthly-salary-group" style="display:none;">
                     <label for="rec-monthly-salary">Monthly Salary <span class="required">*</span></label>
                     <input type="number" id="rec-monthly-salary" class="form-input" placeholder="e.g. 15000" min="0">
+                </div>
+
+                <div class="form-group" id="rec-incentives-group" style="display:none;">
+                    <label for="rec-incentives">Incentives</label>
+                    <input type="number" id="rec-incentives" class="form-input" placeholder="e.g. 2000" min="0">
+                    <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">Manually enter incentive amount (added to total for Interns and Executive Supervisors)</p>
                 </div>
 
                 <div class="form-group" id="rec-bonus-group" style="display:none;">
