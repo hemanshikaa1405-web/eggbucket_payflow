@@ -146,6 +146,14 @@
                         <p class="input-hint">Enter the incentive amount for Sales-cum-Delivery Fleet</p>
                     </div>
 
+                    <div class="calc-form-group" id="monthly-salary-group" style="display: none;">
+                        <label for="calc-monthly-salary">Monthly Salary <span class="required">*</span></label>
+                        <div class="number-input-wrapper">
+                            <input type="number" id="calc-monthly-salary" class="calc-input" value="0" min="0">
+                        </div>
+                        <p class="input-hint">Enter the monthly salary</p>
+                    </div>
+
                     <div class="calc-form-group" id="aq-count-group" style="display: none;">
                         <label for="calc-aq-count">Customer AQ Count <span class="required">*</span></label>
                         <div class="number-input-wrapper">
@@ -160,14 +168,6 @@
                             <input type="number" id="calc-aq-cost" class="calc-input" value="0" min="0" step="0.01">
                         </div>
                         <p class="input-hint">Enter the cost per AQ customer</p>
-                    </div>
-
-                    <div class="calc-form-group" id="monthly-salary-group" style="display: none;">
-                        <label for="calc-monthly-salary">Monthly Salary <span class="required">*</span></label>
-                        <div class="number-input-wrapper">
-                            <input type="number" id="calc-monthly-salary" class="calc-input" value="0" min="0">
-                        </div>
-                        <p class="input-hint">Enter the monthly salary</p>
                     </div>
 
                     <div class="calc-form-group" id="incentives-group" style="display: none;">
@@ -207,23 +207,6 @@
                 <div class="breakdown-display">
                     <p class="breakdown-title" id="breakdown-subtitle">-</p>
                     <h2 class="breakdown-amount" id="breakdown-total">₹0</h2>
-
-                    <!-- Progress Bar (for Sales-cum-Delivery only) -->
-                    <div class="progress-section" id="progress-section-sales">
-                        <div class="progress-labels top">
-                            <span>0 trays</span>
-                            <span>6,000 trays</span>
-                            <span>9,000 trays</span>
-                        </div>
-                        <div class="progress-track">
-                            <div class="progress-fill" id="progress-bar-fill" style="width: 0%;"></div>
-                        </div>
-                        <div class="progress-labels bottom">
-                            <span>Base</span>
-                            <span>Tier 1 (6K)</span>
-                            <span>Tier 2 (9K)</span>
-                        </div>
-                    </div>
 
                     <!-- AQ Fleet Info -->
                     <div class="progress-section" id="progress-section-aq" style="display: none;">

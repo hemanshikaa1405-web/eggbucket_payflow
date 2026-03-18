@@ -31,11 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const breakdownTotal = document.getElementById('breakdown-total');
     const breakdownBadge = document.getElementById('breakdown-badge');
 
-    // Progress Bar
-    const progressBarFill = document.getElementById('progress-bar-fill');
-
     // Progress Sections
-    const progressSectionSales = document.getElementById('progress-section-sales');
     const progressSectionAQ = document.getElementById('progress-section-aq');
     const progressSectionFixed = document.getElementById('progress-section-fixed');
 
@@ -147,6 +143,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function isActiveEmployee(emp) {
+        return emp && (emp.is_active === undefined ? true : !!emp.is_active);
+    }
+
     function populateEmployees() {
         const deptDisplay = document.getElementById('employee-dept');
         if (employees.length === 0) {
@@ -156,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         employeeSelect.innerHTML = '<option value="" disabled selected>Select an employee</option>';
-        employees.forEach(emp => {
+        employees.filter(isActiveEmployee).forEach(emp => {
             const option = document.createElement('option');
             option.value = emp.id;
             option.textContent = emp.name;
@@ -197,9 +197,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (emp) {
             if (emp.department === 'Customer AQ Fleet') {
-                // Show AQ fields
+                // Show Monthly Salary + AQ fields
+                monthlySalaryGroup.style.display = 'block';
                 aqCountGroup.style.display = 'block';
                 aqCostGroup.style.display = 'block';
+                monthlySalaryInput.required = true;
                 aqCountInput.required = true;
                 aqCostInput.required = true;
             } else if (isInternOrSupervisor(emp)) {
@@ -249,16 +251,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (emp.department === 'Customer AQ Fleet') {
             // AQ Fleet calculation
+            const monthlySalary = parseInt(monthlySalaryInput.value, 10);
             const aqCount = parseInt(aqCountInput.value, 10);
             const aqCost = parseFloat(aqCostInput.value, 10) || 0;
 
-            if (isNaN(aqCount) || aqCount < 0 || isNaN(aqCost) || aqCost < 0) {
+            if (isNaN(monthlySalary) || monthlySalary < 0 || isNaN(aqCount) || aqCount < 0 || isNaN(aqCost) || aqCost < 0) {
                 resetDisplay();
                 return;
             }
 
-            // For AQ Fleet, base salary is fixed, incentive is based on AQ count * cost
-            baseSalary = 15000; // Same base as others
+            // For AQ Fleet, base salary is manually entered monthly salary
+            baseSalary = monthlySalary;
             incentive = aqCount * aqCost;
             totalSalary = baseSalary + incentive + bonus;
 
@@ -268,7 +271,6 @@ document.addEventListener('DOMContentLoaded', () => {
             breakdownBadge.style.borderColor = 'rgba(37, 99, 235, 0.15)';
 
             // Show AQ section, hide others
-            progressSectionSales.style.display = 'none';
             progressSectionAQ.style.display = 'block';
             progressSectionFixed.style.display = 'none';
 
@@ -303,7 +305,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // Show fixed salary section, hide others
-            progressSectionSales.style.display = 'none';
             progressSectionAQ.style.display = 'none';
             progressSectionFixed.style.display = 'block';
 
@@ -340,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
             breakdownBadge.style.borderColor = 'rgba(249, 115, 22, 0.22)';
 
             // Hide all progress sections
-            progressSectionSales.style.display = 'none';
             progressSectionAQ.style.display = 'none';
             progressSectionFixed.style.display = 'none';
         }
@@ -358,14 +358,12 @@ document.addEventListener('DOMContentLoaded', () => {
         valIncentive.textContent = '₹0';
         valBonus.textContent = '₹0';
         valTotal.textContent = '₹0';
-        progressBarFill.style.width = '0%';
         breakdownBadge.textContent = 'Waiting...';
         breakdownBadge.style.color = '#9B6A4F';
         breakdownBadge.style.backgroundColor = 'transparent';
         breakdownBadge.style.borderColor = 'transparent';
 
         // Hide all progress sections
-        progressSectionSales.style.display = 'none';
         progressSectionAQ.style.display = 'none';
         progressSectionFixed.style.display = 'none';
 
@@ -427,15 +425,16 @@ document.addEventListener('DOMContentLoaded', () => {
         let recordData;
 
         if (emp.department === 'Customer AQ Fleet') {
+            const monthlySalary = parseInt(monthlySalaryInput.value, 10);
             const aqCount = parseInt(aqCountInput.value, 10);
             const aqCost = parseFloat(aqCostInput.value, 10) || 0;
 
-            if (isNaN(aqCount) || aqCount < 0 || isNaN(aqCost) || aqCost < 0) {
+            if (isNaN(monthlySalary) || monthlySalary < 0 || isNaN(aqCount) || aqCount < 0 || isNaN(aqCost) || aqCost < 0) {
                 alert("Please fill in all AQ details correctly.");
                 return;
             }
 
-            const baseSalary = 15000;
+            const baseSalary = monthlySalary;
             const incentive = aqCount * aqCost;
             const totalSalary = baseSalary + incentive + bonus;
 
@@ -443,13 +442,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 employeeId: emp.id,
                 employeeName: emp.name,
                 month: monthVal,
+                monthlySalary: monthlySalary,
                 aqCount: aqCount,
                 aqCost: aqCost,
                 bonus: bonus,
                 baseSalary: baseSalary,
                 incentive: incentive,
                 totalSalary: totalSalary,
-                inputs: { aqCount: aqCount, aqCost: aqCost, bonus: bonus },
+                inputs: { monthlySalary: monthlySalary, aqCount: aqCount, aqCost: aqCost, bonus: bonus },
                 type: 'aq_fleet'
             };
         } else if (isInternOrSupervisor(emp)) {
@@ -505,6 +505,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 type: 'sales_fleet'
             };
         }
+
+        // Store employee department at time of record creation (preserve history)
+        recordData.department = emp.department || '';
 
         try {
             recordData.id = crypto.randomUUID();
@@ -582,13 +585,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const emp = employees.find(e => e.id === rec.employeeId);
             const empName = emp ? emp.name : 'Unknown';
-            const empDept = emp ? emp.department : 'Unknown';
+            const recDept = (rec.department != null && rec.department !== '') ? rec.department : (emp ? emp.department : 'Unknown');
 
             return `
             <div class="history-card" data-id="${rec.id}">
                 <div class="history-card-top">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    ${escapeHTML(empName)} (${escapeHTML(empDept)})
+                    ${escapeHTML(empName)} (${escapeHTML(recDept)})
                     <button class="history-action-btn history-delete-btn" data-id="${rec.id}" title="Delete record" aria-label="Delete record">
                         <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>

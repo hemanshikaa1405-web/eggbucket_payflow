@@ -73,6 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function isActiveEmployee(emp) {
+        // Backwards compatible if column not present yet
+        return emp && (emp.is_active === undefined ? true : !!emp.is_active);
+    }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
 
@@ -104,7 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('🔄 Inserting new employee to Supabase...');
                 const { error } = await window.supabaseClient
                     .from('Employee')
-                    .insert([{ name, department, phone }]);
+                    .insert([{ name, department, phone, is_active: true }]);
 
                 if (error) throw error;
                 console.log('✅ Employee added');
@@ -130,6 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
     employeeGrid.addEventListener('click', async (e) => {
         const editBtn = e.target.closest('.action-edit');
         const deleteBtn = e.target.closest('.action-delete');
+        const statusBtn = e.target.closest('.action-status-toggle');
 
         if (editBtn) {
             const id = editBtn.dataset.id;
@@ -150,21 +156,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (deleteBtn) {
             const id = deleteBtn.dataset.id;
-            if (confirm('Are you sure you want to delete this employee?')) {
+            if (confirm('Mark this employee as inactive? They will be hidden from salary calculation dropdowns, but past records will remain.')) {
                 try {
-                    console.log('🔄 Deleting employee from Supabase...');
+                    console.log('🔄 Marking employee inactive in Supabase...');
                     const { error } = await window.supabaseClient
                         .from('Employee')
-                        .delete()
+                        .update({ is_active: false })
                         .eq('id', id);
 
                     if (error) throw error;
-                    console.log('✅ Employee deleted');
+                    console.log('✅ Employee marked inactive');
                     await fetchEmployees();
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('Failed to delete employee.');
+                    alert('Failed to update employee status.');
                 }
+            }
+        }
+
+        if (statusBtn) {
+            const id = statusBtn.dataset.id;
+            const current = employees.find(emp => emp.id === id);
+            if (!current) return;
+            const nextStatus = !isActiveEmployee(current);
+            try {
+                console.log('🔄 Updating employee status in Supabase...', { id, nextStatus });
+                const { error } = await window.supabaseClient
+                    .from('Employee')
+                    .update({ is_active: nextStatus })
+                    .eq('id', id);
+                if (error) throw error;
+                await fetchEmployees();
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Failed to update employee status.');
             }
         }
     });
@@ -191,16 +216,22 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        employeeGrid.innerHTML = employees.map(emp => `
-            <div class="employee-card" style="position: relative;">
+        employeeGrid.innerHTML = employees.map(emp => {
+            const active = isActiveEmployee(emp);
+            return `
+            <div class="employee-card" style="position: relative; ${active ? '' : 'opacity: 0.72;'}">
                 <div class="card-actions" style="position: absolute; top: 16px; right: 16px; display: flex; gap: 8px;">
+                    <button class="action-btn action-status-toggle" data-id="${emp.id}" title="${active ? 'Mark inactive' : 'Mark active'}" aria-label="Toggle status"
+                        style="border: 1.5px solid var(--border); background: ${active ? 'rgba(21, 128, 61, 0.08)' : 'rgba(220, 38, 38, 0.08)'}; color: ${active ? '#15803D' : '#DC2626'}; padding: 6px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; cursor: pointer;">
+                        ${active ? 'Active' : 'Inactive'}
+                    </button>
                     <button class="action-btn action-edit" data-id="${emp.id}" title="Edit" aria-label="Edit" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.backgroundColor='rgba(0,0,0,0.05)'; this.style.color='var(--text-main)'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-muted)'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                     </button>
                     <a class="action-btn action-months" href="records.html?employeeId=${emp.id}" title="Months" aria-label="Months" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 6px; border-radius: 6px; display: flex; align-items: center; justify-content: center; text-decoration: none;">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     </a>
-                    <button class="action-btn action-delete" data-id="${emp.id}" title="Delete" aria-label="Delete" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.backgroundColor='rgba(245,101,101,0.1)'; this.style.color='#E53E3E'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-muted)'">
+                    <button class="action-btn action-delete" data-id="${emp.id}" title="Mark as inactive" aria-label="Mark as inactive" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 4px; transition: all 0.2s; display: flex; align-items: center; justify-content: center;" onmouseover="this.style.backgroundColor='rgba(245,101,101,0.1)'; this.style.color='#E53E3E'" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--text-muted)'">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                 </div>
@@ -209,7 +240,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 ${emp.phone ? `<p style="margin-top: 4px; font-style: normal; font-size: 14px; color: var(--text-main);"><strong>Phone:</strong> ${escapeHTML(emp.phone)}</p>` : ''}
                 ${!emp.department && !emp.phone ? `<p style="margin-top: 12px;">No details added</p>` : `<p></p>`}
             </div>
-        `).join('');
+        `;
+        }).join('');
     }
 
     function escapeHTML(str) {

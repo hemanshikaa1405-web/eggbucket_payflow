@@ -347,7 +347,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const employee = employees ? employees.find(emp => emp.id === r.employeeId) : null;
                     const empName = employee ? employee.name : 'Unknown Employee';
-                    const dept = employee ? (employee.department || '-') : '-';
+                    const dept = (r.department != null && r.department !== '' ? r.department : (employee ? (employee.department || '-') : '-'));
                     const month = formatMonth(r.month);
                     const type = formatType(r);
                     const base = r.baseSalary != null ? r.baseSalary : '';
@@ -567,6 +567,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function isActiveEmployee(emp) {
+        return emp && (emp.is_active === undefined ? true : !!emp.is_active);
+    }
+
     async function saveRecord(recordData) {
         try {
             console.log('💾 Saving record...', JSON.stringify(recordData, null, 2));
@@ -609,7 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function populateEmployeeDropdown() {
         recEmployee.innerHTML = '<option value="" disabled selected>Select an employee</option>';
-        employees.forEach(emp => {
+        employees.filter(isActiveEmployee).forEach(emp => {
             const option = document.createElement('option');
             option.value = emp.id;
             option.textContent = emp.name;
@@ -670,10 +674,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (emp) {
             if (emp.department === 'Customer AQ Fleet') {
+                const msal = parseInt(recMonthlySalary.value, 10);
                 const aqCount = parseInt(recAqCount.value, 10);
                 const aqCost = parseFloat(recAqCost.value, 10) || 0;
-                if (!isNaN(aqCount) && aqCount >= 0 && !isNaN(aqCost) && aqCost >= 0) {
-                    base = 15000;
+                if (!isNaN(msal) && msal >= 0 && !isNaN(aqCount) && aqCount >= 0 && !isNaN(aqCost) && aqCost >= 0) {
+                    base = msal;
                     incentive = aqCount * aqCost;
                     total = base + incentive + bonus;
                 }
@@ -736,8 +741,10 @@ document.addEventListener('DOMContentLoaded', () => {
             recBonusGroup.style.display = 'block';
             const dept = String(emp.department || emp.Department || '').trim();
             if (dept === 'Customer AQ Fleet') {
+                recMonthlySalaryGroup.style.display = 'block';
                 recAqCountGroup.style.display = 'block';
                 recAqCostGroup.style.display = 'block';
+                recMonthlySalary.required = true;
                 recAqCount.required = true;
                 recAqCost.required = true;
             } else if (isInternOrSupervisor(emp)) {
@@ -768,21 +775,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (employee.department === 'Customer AQ Fleet') {
             const aqCount = parseInt(recAqCount.value, 10);
             const aqCost = parseFloat(recAqCost.value, 10) || 0;
-            if (isNaN(aqCount) || aqCount < 0 || isNaN(aqCost) || aqCost < 0) return;
-            const baseSalary = 15000;
+            const monthlySalary = parseInt(recMonthlySalary.value, 10);
+            if (isNaN(monthlySalary) || monthlySalary < 0 || isNaN(aqCount) || aqCount < 0 || isNaN(aqCost) || aqCost < 0) return;
+            const baseSalary = monthlySalary;
             const incentive = aqCount * aqCost;
             const totalSalary = baseSalary + incentive + bonus;
             recordData = {
                 employeeId: employee.id,
                 month,
                 type: 'aq_fleet',
+                monthlySalary,
                 aqCount,
                 aqCost,
                 bonus,
                 baseSalary,
                 incentive,
                 totalSalary,
-                inputs: { aqCount, aqCost, bonus }
+                inputs: { monthlySalary, aqCount, aqCost, bonus }
             };
         } else if (isInternOrSupervisor(employee)) {
             const monthlySalary = parseInt(recMonthlySalary.value, 10);
@@ -825,9 +834,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const existing = salaryHistory.find(r => r.id === editingRecordId);
                 recordData.id = editingRecordId;
                 recordData.createdAt = existing?.createdAt || new Date().toISOString();
+                // Preserve the historical department stored on the record (never auto-update it).
+                recordData.department = existing?.department || employee.department || '';
             } else {
                 recordData.id = crypto.randomUUID();
                 recordData.createdAt = new Date().toISOString();
+                // For new records, store the employee department at the time of creation.
+                recordData.department = employee.department || '';
             }
 
             // Save to Supabase instead of localStorage
@@ -881,10 +894,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const emp = employees.find(e => e.id === record.employeeId);
             const empName = emp ? emp.name : 'Unknown';
             const empDept = emp ? emp.department : '';
+            // Prefer department stored with the record (time-of-creation); fall back only if missing.
+            const recDept = record.department != null && record.department !== '' ? record.department : empDept;
             if (!groupedRecords[record.employeeId]) {
                 groupedRecords[record.employeeId] = {
                     employeeName: empName,
-                    department: empDept,
+                    department: recDept,
                     totalEarned: 0,
                     records: []
                 };
