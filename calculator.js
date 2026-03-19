@@ -75,7 +75,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Listeners for live updates
         employeeSelect.addEventListener('change', handleEmployeeChange);
-        monthInput.addEventListener('change', updateLivePreview);
+        monthInput.addEventListener('change', () => {
+            updateLivePreview();
+            updateCalcMonthHint();
+        });
         incentiveInput.addEventListener('input', updateLivePreview);
         if (incentivesInput) incentivesInput.addEventListener('input', updateLivePreview);
         aqCountInput.addEventListener('input', updateLivePreview);
@@ -174,6 +177,26 @@ document.addEventListener('DOMContentLoaded', () => {
         monthInput.value = `${year}-${month}`;
     }
 
+    function updateCalcMonthHint() {
+        const hint = document.getElementById('calc-month-hint');
+        if (!hint) return;
+        const empId = employeeSelect.value;
+        const monthVal = monthInput.value;
+        if (!empId || !monthVal) {
+            hint.style.display = 'none';
+            hint.textContent = '';
+            return;
+        }
+        const exists = historyRecords.some(r => r.employeeId === empId && r.month === monthVal);
+        if (exists) {
+            hint.style.display = 'block';
+            hint.textContent = 'Salary already processed for this month. Go to Records to view or edit.';
+        } else {
+            hint.style.display = 'none';
+            hint.textContent = '';
+        }
+    }
+
     function handleEmployeeChange() {
         const empId = employeeSelect.value;
         const emp = employees.find(e => e.id === empId);
@@ -181,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deptDisplay) {
             deptDisplay.textContent = emp ? (emp.department || '') : '';
         }
+        updateCalcMonthHint();
 
         // Reset all groups
         if (incentiveGroup) incentiveGroup.style.display = 'none';
@@ -392,7 +416,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     saved = true;
                 } catch (dbError) {
                     console.error('❌ Supabase save failed - Full error:', dbError);
-                    console.warn('⚠️ Error message:', dbError.message);
+                    if (dbError && dbError.code === '23505') {
+                        alert('Salary already exists for this employee for the selected month. Go to Records to view or edit.');
+                        return false;
+                    }
+                    throw dbError;
                 }
             }
 
@@ -418,6 +446,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!empId || !monthVal || !emp) {
             alert("Please fill in all details correctly.");
+            return;
+        }
+
+        const existingRecord = historyRecords.find(r => r.employeeId === empId && r.month === monthVal);
+        if (existingRecord) {
+            alert("Salary already exists for this employee for the selected month. Go to Records to view or edit.");
             return;
         }
 

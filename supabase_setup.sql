@@ -52,3 +52,10 @@ SET "department" = e."department"
 FROM public."Employee" e
 WHERE sr."department" IS NULL OR sr."department" = ''
   AND sr."employeeId" = e."id";
+
+-- One salary record per employee per month (enforce at DB level)
+-- For existing DBs with duplicates, run MIGRATION_one_record_per_month.sql first.
+ALTER TABLE public."SalaryRecord"
+  DROP CONSTRAINT IF EXISTS salaryrecord_employee_month_unique;
+ALTER TABLE public."SalaryRecord"
+  ADD CONSTRAINT salaryrecord_employee_month_unique UNIQUE ("employeeId", "month");

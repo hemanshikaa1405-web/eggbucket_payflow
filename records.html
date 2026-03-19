@@ -200,7 +200,9 @@
 
                 <div class="form-group">
                     <label for="rec-month">Month <span class="required">*</span></label>
-                    <input type="month" id="rec-month" class="form-input" required>
+                    <input type="month" id="rec-month" class="form-input" required
+                           title="Select a month. Months with existing records open in edit mode.">
+                    <p id="rec-month-hint" class="rec-month-hint" style="font-size: 12px; color: var(--text-muted); margin-top: 6px; display: none;"></p>
                 </div>
 
                 <div class="form-group" id="rec-incentive-group" style="display:none;">

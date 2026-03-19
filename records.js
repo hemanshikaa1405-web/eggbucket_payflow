@@ -492,6 +492,16 @@ document.addEventListener('DOMContentLoaded', () => {
             handleRecEmployeeChange();
         });
 
+        recMonth.addEventListener('change', () => {
+            const empId = recEmployee.value;
+            const month = recMonth.value;
+            if (editingRecordId) return;
+            const existing = getRecordForEmployeeMonth(empId, month);
+            if (existing) {
+                openModal(existing.id);
+            }
+        });
+
         addRecordForm.addEventListener('submit', handleFormSubmit);
 
         recordsContainer.addEventListener('click', (e) => {
@@ -593,7 +603,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     saved = true;
                 } catch (dbError) {
                     console.error('❌ Supabase save failed - Full error:', dbError);
-                    console.warn('⚠️ Error message:', dbError.message);
+                    if (dbError && dbError.code === '23505') {
+                        alert('Salary already exists for this employee for the selected month.');
+                        return false;
+                    }
+                    throw dbError;
                 }
             }
 
@@ -606,7 +620,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         } catch (error) {
             console.error('Unexpected error:', error);
-            alert('Failed to save record: ' + error.message);
+            if (error && error.code === '23505') {
+                alert('Salary already exists for this employee for the selected month.');
+                return false;
+            }
+            alert('Failed to save record: ' + (error.message || 'Unknown error'));
             return false;
         }
     }
@@ -717,6 +735,44 @@ document.addEventListener('DOMContentLoaded', () => {
         return d.includes('intern') || d.includes('executive supervisor');
     }
 
+    function getMonthsWithRecordsForEmployee(empId) {
+        if (!empId) return [];
+        return salaryHistory
+            .filter(r => r.employeeId === empId)
+            .map(r => r.month)
+            .filter(Boolean);
+    }
+
+    function getRecordForEmployeeMonth(empId, month) {
+        if (!empId || !month) return null;
+        return salaryHistory.find(r => r.employeeId === empId && r.month === month) || null;
+    }
+
+    function formatMonthForDisplay(monthStr) {
+        if (!monthStr || monthStr.length < 7) return monthStr;
+        try {
+            const [y, m] = monthStr.split('-').map(Number);
+            const d = new Date(y, m - 1, 1);
+            return d.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+        } catch (e) { return monthStr; }
+    }
+
+    function updateMonthLockHint() {
+        const hint = document.getElementById('rec-month-hint');
+        if (!hint) return;
+        const empId = recEmployee.value;
+        const months = getMonthsWithRecordsForEmployee(empId);
+        if (months.length === 0) {
+            hint.style.display = 'none';
+            hint.textContent = '';
+            return;
+        }
+        hint.style.display = 'block';
+        const labels = months.map(formatMonthForDisplay);
+        hint.textContent = `Salary already processed for: ${labels.join(', ')}. Selecting one opens it in edit mode.`;
+        hint.title = 'Salary already processed for this month';
+    }
+
     function handleRecEmployeeChange() {
         const empId = recEmployee.value;
         const emp = employees.find(e => e.id === empId);
@@ -759,6 +815,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 recIncentive.required = true;
             }
         }
+        updateMonthLockHint();
     }
 
     async function handleFormSubmit(e) {
@@ -768,6 +825,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const month = recMonth.value;
         const employee = employees.find(emp => emp.id === employeeId);
         if (!employeeId || !month || !employee) return;
+
+        if (!editingRecordId) {
+            const existing = getRecordForEmployeeMonth(employeeId, month);
+            if (existing) {
+                alert('Salary already exists for this employee for the selected month.');
+                return;
+            }
+        }
 
         const bonus = parseInt(recBonus.value, 10) || 0;
         let recordData;

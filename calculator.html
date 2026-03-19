@@ -134,16 +134,10 @@
                     <div class="calc-form-group">
                         <label for="calc-month">Month <span class="required">*</span></label>
                         <div class="select-wrapper">
-                            <input type="month" id="calc-month" class="calc-input" required>
+                            <input type="month" id="calc-month" class="calc-input" required
+                                   title="Select a month. Months with existing records cannot be used for new entries.">
                         </div>
-                    </div>
-
-                    <div class="calc-form-group" id="incentive-group" style="display: none;">
-                        <label for="calc-incentive">Incentives <span class="required">*</span></label>
-                        <div class="number-input-wrapper">
-                            <input type="number" id="calc-incentive" class="calc-input" value="0" min="0" required>
-                        </div>
-                        <p class="input-hint">Enter the incentive amount for Sales-cum-Delivery Fleet</p>
+                        <p id="calc-month-hint" class="input-hint" style="display:none; color:var(--orange, #c45a11); margin-top:6px;"></p>
                     </div>
 
                     <div class="calc-form-group" id="monthly-salary-group" style="display: none;">
@@ -152,6 +146,14 @@
                             <input type="number" id="calc-monthly-salary" class="calc-input" value="0" min="0">
                         </div>
                         <p class="input-hint">Enter the monthly salary</p>
+                    </div>
+
+                    <div class="calc-form-group" id="incentive-group" style="display: none;">
+                        <label for="calc-incentive">Incentives <span class="required">*</span></label>
+                        <div class="number-input-wrapper">
+                            <input type="number" id="calc-incentive" class="calc-input" value="0" min="0" required>
+                        </div>
+                        <p class="input-hint">Enter the incentive amount for Sales-cum-Delivery Fleet</p>
                     </div>
 
                     <div class="calc-form-group" id="aq-count-group" style="display: none;">
