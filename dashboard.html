@@ -156,7 +156,8 @@
     <!-- Application Logic -->
     <script src="app.js"></script>
     <script>
-        document.getElementById('logout-btn').addEventListener('click', () => {
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try { if (window.supabaseClient) await window.supabaseClient.auth.signOut(); } catch (e) {}
             sessionStorage.removeItem('sc_token');
             sessionStorage.removeItem('sc_user');
             window.location.href = 'login.html';

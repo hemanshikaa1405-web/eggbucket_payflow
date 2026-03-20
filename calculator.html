@@ -313,9 +313,10 @@
     <script src="salaryEngine.js"></script>
     <script src="calculator.js"></script>
     <script>
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            localStorage.removeItem('sc_token');
-            localStorage.removeItem('sc_user');
+        document.getElementById('logout-btn').addEventListener('click', async () => {
+            try { if (window.supabaseClient) await window.supabaseClient.auth.signOut(); } catch (e) {}
+            sessionStorage.removeItem('sc_token');
+            sessionStorage.removeItem('sc_user');
             window.location.href = 'login.html';
         });
     </script>

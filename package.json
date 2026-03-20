@@ -7,7 +7,8 @@
     "test": "node salaryEngine.test.js",
     "start": "node server.js",
     "dev": "npx prisma generate --schema=prisma/schema.sqlite.prisma && npx prisma db push --schema=prisma/schema.sqlite.prisma && node server.js",
-    "vercel-build": "npx prisma generate"
+    "vercel-build": "npx prisma generate",
+    "seed-auth": "node scripts/seed-auth-users.js"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +16,7 @@
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^6.19.2",
+    "@supabase/supabase-js": "^2.99.3",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",

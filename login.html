@@ -24,7 +24,7 @@
                 style="background:var(--card-bg); padding:22px; border-radius:12px; box-shadow:var(--shadow);">
                 <div class="form-group">
                     <label for="login-user">Username</label>
-                    <input id="login-user" class="form-input" placeholder="you@example.com" required>
+                    <input id="login-user" class="form-input" placeholder="Admin or Supervisor" required>
                 </div>
                 <div class="form-group">
                     <label for="login-pass">Password</label>
@@ -40,37 +40,72 @@
         </div>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.1"></script>
+    <script src="supabaseClient.js"></script>
     <script>
         const TOKEN_KEY = 'sc_token';
         const USER_KEY = 'sc_user';
         const form = document.getElementById('login-form');
 
-        async function postJSON(url, body) {
-            const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-            return res;
-        }
+        // Credential mapping: username -> { email, password, role, name }
+        const CREDENTIALS = {
+            'Admin': { email: 'admin@eggbucket.app', password: 'Admin123@', role: 'admin', name: 'Administrator' },
+            'Supervisor': { email: 'supervisor@eggbucket.app', password: '6366929651', role: 'supervisor', name: 'Supervisor' }
+        };
 
-        form.addEventListener('submit', (e) => {
+        form.addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('login-user').value.trim();
             const password = document.getElementById('login-pass').value.trim();
             if (!username || !password) return alert('Enter username and password');
 
-            // enforce single allowed credential pair
-            if (username !== 'Admin' || password !== 'Admin123@') {
+            const cred = CREDENTIALS[username];
+            if (!cred || cred.password !== password) {
                 return alert('Invalid username or password');
             }
 
-            // credentials valid – simulate login by setting a dummy token
-            try { sessionStorage.setItem(TOKEN_KEY, 'dummy-admin-token'); } catch (e) { /* ignore */ }
-            try { sessionStorage.setItem(USER_KEY, JSON.stringify({ username: 'Admin', name: 'Administrator' })); } catch (e) { }
-            const params = new URLSearchParams(window.location.search);
-            const redirect = params.get('redirect') || 'index.html';
-            window.location.href = redirect;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const origText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Signing in...';
+
+            try {
+                const supabase = window.supabaseClient;
+                if (!supabase) return alert('App not configured. Please refresh and try again.');
+
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: cred.email,
+                    password: cred.password
+                });
+
+                if (error) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = origText;
+                    return alert(error.message || 'Invalid username or password');
+                }
+
+                sessionStorage.setItem(TOKEN_KEY, data.session.access_token);
+                sessionStorage.setItem(USER_KEY, JSON.stringify({
+                    username: username,
+                    name: cred.name,
+                    role: cred.role,
+                    id: data.user?.id
+                }));
+
+                const params = new URLSearchParams(window.location.search);
+                let redirect = params.get('redirect') || 'index.html';
+                if (cred.role === 'supervisor') {
+                    redirect = 'calculator.html';
+                } else if (redirect && (redirect.includes('dashboard') || redirect.includes('records'))) {
+                    // Admin can go anywhere
+                }
+                window.location.href = redirect;
+            } catch (err) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = origText;
+                alert(err.message || 'Login failed. Run: node scripts/seed-auth-users.js to create users.');
+            }
         });
-
-        // Create/forgot actions removed per requirements; login is hard‑coded to Admin/Admin123@
-
     </script>
 </body>
 

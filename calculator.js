@@ -188,9 +188,12 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
         const exists = historyRecords.some(r => r.employeeId === empId && r.month === monthVal);
+        const isSupervisor = (JSON.parse(sessionStorage.getItem('sc_user') || '{}')).role === 'supervisor';
         if (exists) {
             hint.style.display = 'block';
-            hint.textContent = 'Salary already processed for this month. Go to Records to view or edit.';
+            hint.textContent = isSupervisor
+                ? 'Salary already processed for this month. Submitting will update the existing record.'
+                : 'Salary already processed for this month. Go to Records to view or edit.';
         } else {
             hint.style.display = 'none';
             hint.textContent = '';
@@ -395,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (infoIncentivesWrap) infoIncentivesWrap.style.display = 'none';
     }
 
-    async function saveSalary(record) {
+    async function saveSalary(record, isUpdate = false) {
         try {
             console.log('💾 Saving salary...', JSON.stringify(record, null, 2));
             let saved = false;
@@ -426,7 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (saved) {
                 console.log('✅ Salary saved successfully');
-                alert('Salary saved successfully');
+                alert(isUpdate ? 'Salary record updated successfully.' : 'Salary saved successfully');
                 return true;
             }
             return false;
@@ -450,10 +453,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const existingRecord = historyRecords.find(r => r.employeeId === empId && r.month === monthVal);
-        if (existingRecord) {
+        const isSupervisor = (JSON.parse(sessionStorage.getItem('sc_user') || '{}')).role === 'supervisor';
+        if (existingRecord && !isSupervisor) {
             alert("Salary already exists for this employee for the selected month. Go to Records to view or edit.");
             return;
         }
+        // Supervisor: upsert (update if exists, create if not). Admin: only create (blocked above if exists).
 
         const bonus = parseInt(bonusInput.value, 10) || 0;
         let recordData;
@@ -544,11 +549,16 @@ document.addEventListener('DOMContentLoaded', () => {
         recordData.department = emp.department || '';
 
         try {
-            recordData.id = crypto.randomUUID();
-            recordData.createdAt = new Date().toISOString();
+            if (existingRecord) {
+                recordData.id = existingRecord.id;
+                recordData.createdAt = existingRecord.createdAt || new Date().toISOString();
+            } else {
+                recordData.id = crypto.randomUUID();
+                recordData.createdAt = new Date().toISOString();
+            }
 
-            // Save to Supabase instead of localStorage
-            const saved = await saveSalary(recordData);
+            // Save to Supabase (upsert: create new or update existing)
+            const saved = await saveSalary(recordData, !!existingRecord);
             if (saved) {
                 await loadData();
                 // Reset all inputs
@@ -605,6 +615,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function renderHistory() {
+        const isSupervisor = (JSON.parse(sessionStorage.getItem('sc_user') || '{}')).role === 'supervisor';
+
         if (historyRecords.length === 0) {
             historyList.innerHTML = '<p style="color: #9B6A4F; font-size: 14px; padding: 24px; text-align: center; background-color: #FFF8F3; border: 1.5px dashed #F0D8C8; border-radius: 12px;">No salary records saved yet.</p>';
             return;
@@ -621,14 +633,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const empName = emp ? emp.name : 'Unknown';
             const recDept = (rec.department != null && rec.department !== '') ? rec.department : (emp ? emp.department : 'Unknown');
 
+            const deleteBtnHtml = isSupervisor ? '' : `
+                    <button class="history-action-btn history-delete-btn" data-id="${rec.id}" title="Delete record" aria-label="Delete record">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>`;
             return `
             <div class="history-card" data-id="${rec.id}">
                 <div class="history-card-top">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--text-muted);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     ${escapeHTML(empName)} (${escapeHTML(recDept)})
-                    <button class="history-action-btn history-delete-btn" data-id="${rec.id}" title="Delete record" aria-label="Delete record">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>
+                    ${deleteBtnHtml}
                 </div>
                 <div class="history-card-bottom">
                     <div class="history-meta-group">

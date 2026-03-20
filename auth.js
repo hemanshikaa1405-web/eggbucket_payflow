@@ -1,4 +1,4 @@
-// Simple client-side auth guard — stores a lightweight flag in localStorage.
+// Simple client-side auth guard — stores a lightweight flag in sessionStorage.
 (function () {
     const TOKEN_KEY = 'sc_token';
     const PUBLIC = ['login.html', 'reset.html'];
@@ -14,19 +14,45 @@
         return;
     }
 
+    // Reject legacy dummy token (migration from pre–Supabase Auth)
+    if (token === 'dummy-admin-token') {
+        sessionStorage.removeItem(TOKEN_KEY);
+        sessionStorage.removeItem('sc_user');
+        window.location.href = 'login.html';
+        return;
+    }
+
     // Get user data from sessionStorage
     const userData = JSON.parse(sessionStorage.getItem('sc_user') || '{}');
-    if (userData && userData.username) {
-        handleLoggedIn(userData);
-    } else {
+    if (!userData || !userData.username) {
         const redirect = encodeURIComponent(window.location.pathname + window.location.search);
         window.location.href = `login.html?redirect=${redirect}`;
+        return;
     }
+
+    // Supervisor can ONLY access calculator page
+    const role = userData.role || 'admin';
+    const supervisorOnlyPages = ['calculator.html'];
+    const supervisorBlockedPages = ['dashboard.html', 'records.html', 'index.html'];
+    if (role === 'supervisor' && (supervisorBlockedPages.includes(p) || !supervisorOnlyPages.includes(p))) {
+        window.location.href = 'calculator.html';
+        return;
+    }
+
+    handleLoggedIn(userData);
 
     // shared handler inserts logout/dashboard buttons etc
     function handleLoggedIn(userData) {
-        // store user info for other pages if not already set
+        const role = userData.role || 'admin';
         try { sessionStorage.setItem('sc_user', JSON.stringify(userData)); } catch (e) { }
+
+        // Hide Employees and Records nav for Supervisor
+        if (role === 'supervisor') {
+            document.querySelectorAll('a[href="dashboard.html"], a[href="records.html"]').forEach(el => {
+                if (el.closest('.dash-nav')) el.style.display = 'none';
+            });
+        }
+
         try {
             const header = document.querySelector('.header');
             if (header && !document.getElementById('sc-auth-actions')) {
@@ -46,7 +72,10 @@
                         </svg>
                         <span style="margin-left:6px;">Logout</span>
                     `;
-                    btn.addEventListener('click', () => {
+                    btn.addEventListener('click', async () => {
+                        try {
+                            if (window.supabaseClient) await window.supabaseClient.auth.signOut();
+                        } catch (e) { /* ignore */ }
                         sessionStorage.removeItem(TOKEN_KEY);
                         sessionStorage.removeItem('sc_user');
                         window.location.href = 'login.html';
