@@ -26,7 +26,7 @@ CREATE POLICY "Employee admin full" ON public."Employee"
 CREATE POLICY "Employee supervisor read" ON public."Employee"
   FOR SELECT USING (public.current_user_role() = 'supervisor');
 
--- SalaryRecord: Admin full access; Supervisor SELECT, INSERT, UPDATE (no DELETE)
+-- SalaryRecord: Admin full access; Supervisor SELECT, INSERT only (no UPDATE, no DELETE)
 DROP POLICY IF EXISTS "SalaryRecord admin full" ON public."SalaryRecord";
 DROP POLICY IF EXISTS "SalaryRecord supervisor read" ON public."SalaryRecord";
 DROP POLICY IF EXISTS "SalaryRecord supervisor insert" ON public."SalaryRecord";
@@ -42,8 +42,4 @@ CREATE POLICY "SalaryRecord supervisor read" ON public."SalaryRecord"
 CREATE POLICY "SalaryRecord supervisor insert" ON public."SalaryRecord"
   FOR INSERT WITH CHECK (public.current_user_role() = 'supervisor');
 
-CREATE POLICY "SalaryRecord supervisor update" ON public."SalaryRecord"
-  FOR UPDATE USING (public.current_user_role() = 'supervisor')
-  WITH CHECK (public.current_user_role() = 'supervisor');
-
--- No DELETE policy for supervisor = supervisor cannot delete
+-- No UPDATE or DELETE policy for supervisor = months are locked once saved

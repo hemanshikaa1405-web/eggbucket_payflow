@@ -22,4 +22,4 @@
 ## Access Summary
 
 - **Admin**: Full access (Employees, Records, Calculator). Can create, edit, delete.
-- **Supervisor**: Calculator only. Can create and update salary records. Cannot delete or access Employees/Records.
+- **Supervisor**: Calculator only. Can create salary records. Once saved, months are locked—no edit. Cannot delete or access Employees/Records.

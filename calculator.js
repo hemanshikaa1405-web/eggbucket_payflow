@@ -76,6 +76,22 @@ document.addEventListener('DOMContentLoaded', () => {
         // Listeners for live updates
         employeeSelect.addEventListener('change', handleEmployeeChange);
         monthInput.addEventListener('change', () => {
+            const isSupervisor = (JSON.parse(sessionStorage.getItem('sc_user') || '{}')).role === 'supervisor';
+            const empId = employeeSelect.value;
+            const monthVal = monthInput.value;
+            if (isSupervisor && empId && monthVal) {
+                const locked = getLockedMonthsForEmployee(empId);
+                if (locked.includes(monthVal)) {
+                    const now = new Date();
+                    let fallback = '';
+                    for (let i = 0; i < 24; i++) {
+                        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                        const m = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                        if (!locked.includes(m)) { fallback = m; break; }
+                    }
+                    monthInput.value = fallback;
+                }
+            }
             updateLivePreview();
             updateCalcMonthHint();
         });
@@ -177,23 +193,30 @@ document.addEventListener('DOMContentLoaded', () => {
         monthInput.value = `${year}-${month}`;
     }
 
+    function getLockedMonthsForEmployee(empId) {
+        if (!empId) return [];
+        return historyRecords.filter(r => r.employeeId === empId).map(r => r.month).filter(Boolean);
+    }
+
     function updateCalcMonthHint() {
         const hint = document.getElementById('calc-month-hint');
         if (!hint) return;
         const empId = employeeSelect.value;
         const monthVal = monthInput.value;
-        if (!empId || !monthVal) {
+        const isSupervisor = (JSON.parse(sessionStorage.getItem('sc_user') || '{}')).role === 'supervisor';
+
+        if (!empId) {
             hint.style.display = 'none';
             hint.textContent = '';
             return;
         }
-        const exists = historyRecords.some(r => r.employeeId === empId && r.month === monthVal);
-        const isSupervisor = (JSON.parse(sessionStorage.getItem('sc_user') || '{}')).role === 'supervisor';
-        if (exists) {
+
+        const lockedMonths = getLockedMonthsForEmployee(empId);
+        const isLocked = monthVal && lockedMonths.includes(monthVal);
+
+        if (!isSupervisor && monthVal && isLocked) {
             hint.style.display = 'block';
-            hint.textContent = isSupervisor
-                ? 'Salary already processed for this month. Submitting will update the existing record.'
-                : 'Salary already processed for this month. Go to Records to view or edit.';
+            hint.textContent = 'Salary already processed for this month. Go to Records to view or edit.';
         } else {
             hint.style.display = 'none';
             hint.textContent = '';
@@ -454,11 +477,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const existingRecord = historyRecords.find(r => r.employeeId === empId && r.month === monthVal);
         const isSupervisor = (JSON.parse(sessionStorage.getItem('sc_user') || '{}')).role === 'supervisor';
-        if (existingRecord && !isSupervisor) {
-            alert("Salary already exists for this employee for the selected month. Go to Records to view or edit.");
+        if (existingRecord) {
+            if (isSupervisor) {
+                alert("Salary already processed for this month. This month is locked and cannot be edited.");
+            } else {
+                alert("Salary already exists for this employee for the selected month. Go to Records to view or edit.");
+            }
             return;
         }
-        // Supervisor: upsert (update if exists, create if not). Admin: only create (blocked above if exists).
 
         const bonus = parseInt(bonusInput.value, 10) || 0;
         let recordData;
@@ -549,16 +575,10 @@ document.addEventListener('DOMContentLoaded', () => {
         recordData.department = emp.department || '';
 
         try {
-            if (existingRecord) {
-                recordData.id = existingRecord.id;
-                recordData.createdAt = existingRecord.createdAt || new Date().toISOString();
-            } else {
-                recordData.id = crypto.randomUUID();
-                recordData.createdAt = new Date().toISOString();
-            }
+            recordData.id = crypto.randomUUID();
+            recordData.createdAt = new Date().toISOString();
 
-            // Save to Supabase (upsert: create new or update existing)
-            const saved = await saveSalary(recordData, !!existingRecord);
+            const saved = await saveSalary(recordData, false);
             if (saved) {
                 await loadData();
                 // Reset all inputs
